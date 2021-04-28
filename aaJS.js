@@ -91,12 +91,18 @@
 
             if (document.getElementById) {
                 const node = document.getElementById(id);
+                if (!node) {
+                    if (reject) {
+                        reject.call(thisArg, "DOM element not found.", "warning");
+                    }
+                }
                 if (node) {
                     if (resolve) {
                         resolve.call(thisArg, node);
                     }
                     return node;
                 }
+                return undefined;
             }
             if (reject) {
                 reject.call(thisArg, "DOM element not found.", "warning");
