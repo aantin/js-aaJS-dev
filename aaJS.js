@@ -951,6 +951,14 @@
             }
             return parts.join('.');
         },
+        getDirname:             function () {
+            const str = new String(this).replace(/\/+$/, '');
+            const parts = str.split('/');
+            if (parts.length > 1) {
+                parts.pop();
+            }
+            return parts.join('/');
+        },
         getFilename:            function () {
             const str = this.toString();
             const parts = str.split('/');
