@@ -90,12 +90,11 @@
             );
 
             if (document.getElementById) {
-                const node = document.getElementById(id);
-                if (!node) {
-                    if (reject) {
+                let node = document.getElementById(id);
+                if (!node && reject) {
                         reject.call(thisArg, "DOM element not found.", "warning");
-                    }
                 }
+                node = document.getElementById(id);
                 if (node) {
                     if (resolve) {
                         resolve.call(thisArg, node);
