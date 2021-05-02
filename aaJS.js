@@ -886,17 +886,10 @@
              */
 
             const strict = aa.getArg(arguments, 2, false, isBool);
-            // let strict = false;
-            // strict = arguments && arguments.length > 2 && isBool(arguments[2]) ? arguments[2] : strict;
             return (strict ?
                 (this > min && this < max)
                 : (this >= min && this <= max)
             );
-            // if (strict) {
-            //     return this > min && this < max
-            // } else {
-            //     return this >= min && this <= max
-            // }
         },
         sign:       function (){
             /**
