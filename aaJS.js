@@ -45,6 +45,18 @@
             }
         }
     });
+    aa.getArg               = function (args, i, defaultValue /*, condition */) {
+        const condition = arguments && arguments.length > 3 ? arguments[3] : () => true;
+
+        if (!isArrayLike(args)) { throw new TypeError("First argument must be an Array."); }
+        if (!isPositiveInt(i)) { throw new TypeError("Second argument must be a positive Integer."); }
+        if (!isFunction(condition)) { throw new TypeError("Fourth argument must be a Function."); }
+
+        return (args.length > i && condition(args[i]) ?
+            args[i]
+            : defaultValue
+        );
+    };
     // ----------------------------------------------------------------
     // Mixed functions:
     aa.deploy(window, {
@@ -866,19 +878,25 @@
         pow:        function (param){
             return Math.pow(this,param);
         },
-        between:    function (min,max) {
+        between:    function (min, max /*, strict */) {
             /**
              * @param {Number} min
              * @param {Number} max
              * @param {Boolean} s=false (strict)
              */
-            let s = false;
-            s = arguments && arguments.length > 2 && isBool(arguments[2]) ? arguments[2] : s;
-            if (s) {
-                return this > min && this < max
-            } else {
-                return this >= min && this <= max
-            }
+
+            const strict = aa.getArg(arguments, 2, false, isBool);
+            // let strict = false;
+            // strict = arguments && arguments.length > 2 && isBool(arguments[2]) ? arguments[2] : strict;
+            return (strict ?
+                (this > min && this < max)
+                : (this >= min && this <= max)
+            );
+            // if (strict) {
+            //     return this > min && this < max
+            // } else {
+            //     return this >= min && this <= max
+            // }
         },
         sign:       function (){
             /**
@@ -1354,7 +1372,7 @@
             // }
             return true;
         },
-        filter:         function (fun /*, thisArg */) {
+        filter:         function (callback /*, thisArg */) {
             "use strict";
 
             if (this === void 0 || this === null) {
@@ -1366,7 +1384,7 @@
 
             // NOTE : fix to avoid very long loop on negative length value
 
-            if (len > t.length || typeof fun != 'function') {
+            if (len > t.length || typeof callback != 'function') {
               throw new TypeError();
             }
 
@@ -1382,7 +1400,7 @@
                     //       Cependant cette méthode est récente et les cas de collisions
                     //       devraient rester rares : on préfère donc l'alternative la plus
                     //       compatible.
-                    if (fun.call(thisArg, val, i, t)) {
+                    if (callback.call(thisArg, val, i, t)) {
                         res.push(val);
                     }
                 }
