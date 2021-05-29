@@ -12,6 +12,12 @@
             }
         }
     };
+    // ----------------------------------------------------------------
+    const cease = (message) => {
+        console.warn(message);
+        return undefined;
+    };
+    // ----------------------------------------------------------------
     aa.deploy = Object.freeze(function (context, collection /*, spec */) {
         /**
          * @param {any} context
@@ -45,18 +51,333 @@
             }
         }
     });
-    aa.getArg               = function (args, i, defaultValue /*, condition */) {
-        const condition = arguments && arguments.length > 3 ? arguments[3] : () => true;
+    aa.deploy(aa, {
+        geometry: Object.freeze({
+            affine: {
+                byTwo:          function (a, b) {
+                    /**
+                     * Generate an affine function by two points given.
+                     *
+                     * @param {object} a
+                     * @param {object} b
+                     *
+                     * @return {undefined | object}
+                     */
+                    aa.arg.test(null, isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
+                    aa.arg.test(null, isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
 
-        if (!isArrayLike(args)) { throw new TypeError("First argument must be an Array."); }
-        if (!isPositiveInt(i)) { throw new TypeError("Second argument must be a positive Integer."); }
-        if (!isFunction(condition)) { throw new TypeError("Fourth argument must be a Function."); }
+                    const x1 = a[0];
+                    const y1 = a[1];
+                    const x2 = b[0];
+                    const y2 = b[1];
 
-        return (args.length > i && condition(args[i]) ?
-            args[i]
-            : defaultValue
-        );
-    };
+                    if (x1 === x2) {
+                        cease("The two points must have different abscissa.");
+                    } else {
+                        
+                        // f(x) = ax + b
+                        const a = (y2 - y1) / (x2 - x1);
+                        const b = y1 - (a * x1);
+
+                        return x => (a * x) + b;
+                    }
+                }
+            },
+            circle: {
+                getBy:          function (spec) {
+                    aa.arg.test(null, isObject(spec) && spec.verify({
+                        center: v => (isArray(v) && v.length === 2),
+                        point: v => (isArray(v) && v.length === 2),
+                        radius: isStrictlyPositiveNumber,
+                        three: v => (isArray(v) && v.length === 3),
+                        two: v => (isArray(v) && v.length === 2)
+                    }));
+                    if (spec.three) {
+                        return aa.geometry.circle.functionByThree.apply(this, spec.three);
+                    } else if (spec.center) {
+                    }
+                    return undefined;
+                },
+                byThree:        function (a, b, c) {
+                    /**
+                     * Generate a circle's function by three given points.
+                     *
+                     * @param {object} a
+                     * @param {object} b
+                     * @param {object} c
+                     *
+                     * @return {undefined | object}
+                     */
+
+                    const center = aa.geometry.circle.centerByThree(a, b, c);
+                    
+                    const ax = a[0];
+                    const ay = a[1];
+                    const ox = center.x;
+                    const oy = center.y;
+                    
+                    return {
+                        center: center,
+                        functions: {
+                            upper: x => oy + Math.sqrt(((ay - oy)**2) + ((ax - ox)**2) - ((x - ox)**2)),
+                            lower: x => oy - Math.sqrt(((ay - oy)**2) + ((ax - ox)**2) - ((x - ox)**2))
+                        }
+                    };
+                },
+                centerByThree:  function (a, b, c) {
+                    /**
+                     * Calculates the center coordinates of a circle by three given points.
+                     *
+                     * @param {object} a
+                     * @param {object} b
+                     * @param {object} c
+                     *
+                     * @return {undefined | object}
+                     */
+                    aa.arg.test(null, isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
+                    aa.arg.test(null, isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
+                    aa.arg.test(null, isArrayOfNumbers(c) && c.length === 2, 2, "must be an Array of two Numbers");
+
+                    if (JSON.stringify(a) === JSON.stringify(b) || JSON.stringify(a) === JSON.stringify(c) || JSON.stringify(b) === JSON.stringify(c)) {
+                        cease("All three given points must have different coordinates.");
+                    }
+
+                    const ax = a[0];
+                    const ay = a[1];
+                    const bx = b[0];
+                    const by = b[1];
+                    const cx = c[0];
+                    const cy = c[1];
+
+                    // Let I and J, respectively the middle points of AB and BC:
+                    const ix = (ax + bx) / 2;
+                    const iy = (ay + by) / 2;
+                    const jx = (bx + cx) / 2;
+                    const jy = (by + cy) / 2;
+
+
+                    // If two points are on the same vertical:
+                    if (by - ay === 0 || cy - by === 0) {
+                    } else {
+                        // Let m be the slope of medians:
+                        const im = -1 * (bx - ax) / (by - ay);
+                        const jm = -1 * (cx - bx) / (cy - by);
+
+                        if (im === jm) {
+                            cease("The three given points are aligned; a circle can not be found.")
+                        }
+
+                        // Let g(x) and h(x) be the affine functions of the median by I and J:
+                        const g = (x) => im * (x - ix) + iy;
+                        const h = (x) => jm * (x - jx) + jy;
+
+                        // Intersection:
+                        const ox = ((im * ix) - (jm * jx) + jy - iy) / (im - jm);
+                        return {
+                            x: ox,
+                            y: g(ox)
+                        };
+                    }
+                    return undefined;
+                },
+            },
+            curve: {
+                byThree:        function (a, b, c) {
+                    /**
+                     * Generate a exponential, logarythm or affine function by three points given in ascending order.
+                     *
+                     * @param {object} a
+                     * @param {object} b
+                     * @param {object} c
+                     *
+                     * @return {undefined | object}
+                     */
+                    aa.arg.test(null, isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
+                    aa.arg.test(null, isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
+                    aa.arg.test(null, isArrayOfNumbers(c) && c.length === 2, 2, "must be an Array of two Numbers");
+
+                    const x1 = a[0];
+                    const y1 = a[1];
+                    const x2 = b[0];
+                    const y2 = b[1];
+                    const x3 = c[0];
+                    const y3 = c[1];
+
+                    // Slopes in A and B:
+                    const sA = (y2 - y1) / (x2 - x1);
+                    const sB = (y3 - y2) / (x3 - x2);
+
+                    if (sB > sA) {
+                        return aa.geometry.exp.byThree(a, b, c);
+                    } else if (sB < sA) {
+                        return aa.geometry.log.byThree(a, b, c);
+                    } else {
+                        return aa.geometry.affine.byTwo(a, c);
+                    }
+                }
+            },
+            exp: {
+                byThree:        function (a, b, c) {
+                    /**
+                     * Generate a exponential function by three points given in ascending order.
+                     *
+                     * @param {object} a
+                     * @param {object} b
+                     * @param {object} c
+                     *
+                     * @return {undefined | object}
+                     */
+                    aa.arg.test(null, isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
+                    aa.arg.test(null, isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
+                    aa.arg.test(null, isArrayOfNumbers(c) && c.length === 2, 2, "must be an Array of two Numbers");
+
+                    const x1 = a[0];
+                    const y1 = a[1];
+                    const x2 = b[0];
+                    const y2 = b[1];
+                    const x3 = c[0];
+                    const y3 = c[1];
+
+                    // Slopes in A and B:
+                    const sA = (y2 - y1) / (x2 - x1);
+                    const sB = (y3 - y2) / (x3 - x2);
+
+
+                    if ((x2 - x1) * (x3 - x2) === 0) {  cease("The three points must have different abscissa."); }
+                    else if (sA * sB <= 0) {            cease("The three points must be monotonic"); }
+                    else if (x3 - x2 !== x2 - x1) {     cease("Cx - Bx ≠ Bx - Ax Not implemented yet..."); }
+                    else { // exponential...
+
+                        // f(x)=a·e^(bx) + c
+                        const r = (y3 - y2) / (y2 - y1);
+                        const d = x2 - x1;
+
+                        const b = Math.log(r) / d;
+                        const a = (y2 - y1) / ((Math.exp(x2 / d * Math.log(r))) - (Math.exp(x1 / d * Math.log(r))));
+                        const c = y1 - (a * Math.exp(b * x1));
+
+                        return x => (a * Math.exp(b * x)) + c;
+                    }
+                    return undefined;
+                }
+            },
+            log: {
+                byThree:        function (a, b, c) {
+                    /**
+                     * Generate a logarithm function by three points given in ascending order.
+                     *
+                     * @param {object} a
+                     * @param {object} b
+                     * @param {object} c
+                     *
+                     * @return {undefined | object}
+                     */
+                    aa.arg.test(null, isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
+                    aa.arg.test(null, isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
+                    aa.arg.test(null, isArrayOfNumbers(c) && c.length === 2, 2, "must be an Array of two Numbers");
+
+                    const x1 = a[0];
+                    const y1 = a[1];
+                    const x2 = b[0];
+                    const y2 = b[1];
+                    const x3 = c[0];
+                    const y3 = c[1];
+
+                    // Slopes in A and B:
+                    const sA = (y2 - y1) / (x2 - x1);
+                    const sB = (y3 - y2) / (x3 - x2);
+
+                    if ((x2 - x1) * (x3 - x2) === 0) {  cease("The three points must have different abscissa."); }
+                    else if (sA * sB <= 0) {            cease("The three points must be monotonic"); }
+                    else if (y3 - y2 !== y2 - y1) {     cease("Cy - By ≠ By - Ay Not implemented yet..."); }
+                    else { // logarythm...
+
+                        // f(x)=a·ln(x + b) + c
+                        const b = ((x1 * x2) - (x2 * x2)) / ((2 * x2) - x1 - x3);
+                        const a = (y2 - y1) / (Math.log((b + x2) / (b + x1)));
+                        const c = y1 - (a * Math.log(b + x1));
+
+                        return x => (a * Math.log(b + x)) + c;
+                    }
+                    return undefined;
+                }
+            }
+        }),
+        arg: Object.freeze({
+            optional:    function (args, i, defaultValue /*, condition */) {
+                const condition = arguments && arguments.length > 3 ? arguments[3] : () => true;
+
+                if (!isArrayLike(args)) { throw new TypeError("First argument must be an Array."); }
+                if (!isPositiveInt(i)) { throw new TypeError("Second argument must be a positive Integer."); }
+                if (!isFunction(condition)) { throw new TypeError("Fourth argument must be a Function."); }
+
+                return (args.length > i && condition(args[i]) ?
+                    args[i]
+                    : defaultValue
+                );
+            },
+            test:   function (arg, tester /* [, position [, message]] */) {
+                if (!isFunction(tester) && !isBool(tester)) { throw new TypeError("Second argument must be a Function."); }
+
+                let i;
+                const argv = [];
+                for (i=2; i<arguments.length; i++) {
+                    argv.push(arguments[i]);
+                }
+                const position = argv.find(isPositiveInt);
+                const message = argv.find(nonEmptyString) || "invalid";
+
+                const writeMessage = function (position, str) {
+                    const positions = [
+                        "First argument",
+                        "Second argument",
+                        "Third argument",
+                        "Fourth argument",
+                        "Fifth argument",
+                        "Sixth argument",
+                        "Seventh argument",
+                        "Heighth argument",
+                        "Ninth argument",
+                        "Tenth argument",
+                    ];
+                    const parts = [];
+                    parts.push(position !== undefined && position < positions.length ? positions[position] : "Argument");
+                    parts.push(str.trim());
+                    return (parts.join(' ')+'.').replace(/\.+$/, '.');
+                };
+
+                if (isBool(tester) && !tester) {
+                    throw new TypeError(writeMessage(position, message));
+                } else if (isFunction(tester) && !tester(arg)) {
+                    const testers = {
+                        'must be an Object': isObject,
+                        'must be an Array': isArray,
+                        'must be an Array of Strings': isArrayOfStrings,
+                        'must be an Array of Functions': isArrayOfFunctions,
+                        'must be a Function': isFunction,
+                        'must be a String': isString,
+                        'must be a non-empty String': nonEmptyString,
+                        'must be an Integer': isInt,
+                        'must be a Number': isNumber,
+                        'must be a positive Integer': isPositiveInt,
+                    };
+                    const text = testers.reduce((acc, func, key) => {
+                        if (tester === func) {
+                            acc = key;
+                        }
+                        return acc;
+                    }, null);
+                    if (text) {
+                        throw new TypeError(writeMessage(position, text));
+                    } else {
+                        throw new TypeError(writeMessage(position, message));
+                    }
+                }
+            }
+        })
+    }, {
+        force: true
+    });
     // ----------------------------------------------------------------
     // Mixed functions:
     aa.deploy(window, {
@@ -562,6 +883,10 @@
 
             return (isArray(a) && a.reduce((ok, v)=>{ return (!isFunction(v) ? false : ok); }, true));
         },
+        isArrayOfNumbers:           function (a){
+
+            return (isArray(a) && a.every(v => isNumber(v)));
+        },
         isArrayOfStrings:           function (a){
             
             return (isArray(a) && a.reduce((ok, v)=>{ return (!isString(v) ? false : ok); }, true));
@@ -585,7 +910,9 @@
             return ok;
         },
         isPositiveInt:              v => (isInt(v) && v >= 0),
+        isPositiveNumber:           v => (isNumber(v) && v >= 0),
         isStrictlyPositiveInt:      v => (isInt(v) && v > 0),
+        isStrictlyPositiveNumber:   v => (isNumber(v) && v > 0),
         isRegExp:                   function (param){
             return (
                 typeof param === "object"
@@ -866,32 +1193,42 @@
 
     // NUMBER functions:
     aa.deploy(Number, {
-        isInteger:  function(p) {
+        isInteger:      function(p) {
             return (
                 typeof p === 'number'
                 && isFinite(p)
                 && Math.floor(p) === p
             );
+        },
+        randomRange:    function (min, max) {
+            return Math.floor(Math.random() * (1+max - min) + min);
         }
     });
     aa.deploy(Number.prototype, {
-        pow:        function (param){
-            return Math.pow(this,param);
+        normalize:      function (origRange, destRange) {
+            const value = this+0;
+            const min = origRange[0];
+            const max = origRange[1];
+            const variation = (destRange[1] - destRange[0]) / (max - min);
+            return (destRange[0] + ((value - min) * variation));
         },
-        between:    function (min, max /*, strict */) {
+        between:        function (min, max /*, strict */) {
             /**
              * @param {Number} min
              * @param {Number} max
              * @param {Boolean} s=false (strict)
              */
 
-            const strict = aa.getArg(arguments, 2, false, isBool);
+            const strict = aa.arg.optional(arguments, 2, false, isBool);
             return (strict ?
                 (this > min && this < max)
                 : (this >= min && this <= max)
             );
         },
-        sign:       function (){
+        pow:            function (param){
+            return Math.pow(this,param);
+        },
+        sign:           function (){
             /**
              * return +1 or -1
              */
@@ -1181,7 +1518,7 @@
         Array.aa = {};
     }
     aa.deploy(Array.aa, {
-        indexOf: function (param){
+        indexOf:        function (param){
             
             // Warning: returns false if given parameter is an object with indexes in a different order!
             
@@ -1193,9 +1530,6 @@
         }
     });
     aa.deploy(Array.prototype, {
-        // clone: function (){
-        //     return this.concat([]);
-        // },
         clear:          function () {
             const that = Object(this);
             that.splice(0,that.length);
@@ -1313,12 +1647,38 @@
             this.sort(sortNatural);
             return this;
         },
-        remove:         function (p) {
-            var index = this.indexOf(p);
-            if (index >= 0) {
-                this.splice(index, 1);
-                return p;
+        remove:         function (item /*, removeAll=false */) {
+            /**
+             * Removes first or all item(s) matching the argument from the Array. Returns the first found item or undefined.
+             *
+             * @param {any} item
+             * @param {bool} removeAll=false
+             *
+             * @return {any|undefined}
+             */
+            const removeAll = aa.arg.optional(arguments, 1, false, isBool);
+
+            let i;
+            if (removeAll) {
+                let found = undefined;
+                for (i = this.length - 1; i >= 0 ; i--) {
+                    const value = this[i];
+                    if (value === item) {
+                        found = value;
+                        this.splice(i, 1);
+                    }
+                }
+                return found;
+            } else {
+                for (i = 0; i < this.length; i++) {
+                    const value = this[i];
+                    if (value === item) {
+                        this.splice(i, 1);
+                        return value;
+                    }
+                }
             }
+
             return undefined;
         },
         verify:         function (callback){
@@ -1527,7 +1887,7 @@
         },
         // Production steps, ECMA-262, Edition 5, 15.4.4.21
         // Référence : http://es5.github.io/#x15.4.4.21
-        reduce:         function (callback /*, initialValue*/) {
+        reduce:         function (callback /*, initialValue */) {
             "use strict";
             
             if (this === null) {
@@ -1561,7 +1921,7 @@
         },
         // Production steps, ECMA-262, Edition 5, 15.4.4.21
         // Référence : http://es5.github.io/#x15.4.4.21
-        reduceReverse:  function (callback /*, initialValue*/) {
+        reduceReverse:  function (callback /*, initialValue */) {
             "use strict";
             
             if (this === null) {
@@ -1593,7 +1953,7 @@
         },
         // Production ECMA-262, Edition 5, 15.4.4.17
         // Référence : http://es5.github.io/#x15.4.4.17
-        some:           function (func /*, thisArg*/) {
+        some:           function (func /*, thisArg */) {
             "use strict";
             if (this == null) { throw new TypeError("Array.prototype.some called on null ou undefined"); }
             if (typeof func !== "function") { throw new TypeError("First argument must be a Function."); }
@@ -1612,7 +1972,7 @@
         },
         // Production steps of ECMA-262, Edition 5, 15.4.4.22
         // Reference: http://es5.github.io/#x15.4.4.22
-        reduceRight:    function (callback /*, initialValue*/) {
+        reduceRight:    function (callback /*, initialValue */) {
             "use strict";
             if (null === this || typeof this === "undefined") { throw new TypeError("Array.reduce called on null or undefined"); }
             if (typeof callback !== "function") { throw new TypeError(callback + " is not a function"); }
@@ -1945,10 +2305,17 @@
         on:                 function (eventName, callback) {
             var bubble = (arguments && arguments.length>2 && arguments[2] === true);
 
+            if (isObject(eventName)) {
+                eventName.forEach((callback, eventName) => {
+                    this.on(eventName, callback);
+                });
+                return this;
+            }
+
             if (!isString(eventName) || !eventName.trim()) {
                 throw TypeError("Event name is not a valid string.");
             }
-            if (typeof callback !== "function") {
+            if (!isFunction(callback) && !isObject(callback)) {
                 throw TypeError("Callback must be a function.");
             }
             if (this.addEventListener) {
@@ -1987,15 +2354,27 @@
             });
             return false;
         },
-        verify:             function (dict) {
+        verify:             function (dict /*, strict */) {
             /**
              * @param {object} dict
+             * @param {bool} strict (optional)
              *
              * @return {boolean}
              */
-            if (!dict.reduce((ok, v, k)=>{
-                return (!isFunction(v) ? false : ok);
-            }, true)) { throw new TypeError("Argument must be an Object of Functions only."); }
+            const strict = aa.arg.optional(arguments, 1, false, isBool);
+            if (strict) {
+                const found = dict.reduce((acc, v, k) => {
+                    if (!this.hasOwnProperty(k)) {
+                        acc.push(k);
+                    }
+                    return acc;
+                }, []);
+                if (found.length) {
+                    cease(`Object must have ${found.length == 1 ? 'a ' : ''}'${found.join("', '")}' key${found.length > 1 ? 's' : ''}.`);
+                }
+            }
+            aa.arg.test(dict, dict.every((v, k) => isFunction(v)), 0, "must be an Object of Functions only");
+
             const err = this.reduce((err, v, k)=>{
                 if (!dict.hasOwnProperty(k) || !dict[k](v)) {
                     err.push(k);
