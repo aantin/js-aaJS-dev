@@ -563,7 +563,6 @@
                             }
                             n = n.nextSibling;
                         }
-                        log(list);
                         // return;
                         // log({textBefore:textBefore},{br:br},{textAfter:textAfter});
                         doc.execCommand('insertHTML',false,textBefore+'<br>'+textAfter);
@@ -1531,8 +1530,11 @@
     });
     aa.deploy(Array.prototype, {
         clear:          function () {
-            const that = Object(this);
-            that.splice(0,that.length);
+            // const that = Object(this);
+            // that.splice(0, that.length);
+            while (this.length) {
+                this.pop();
+            }
         },
         getFirst:       function () {
             if (this.length) {
