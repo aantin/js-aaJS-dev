@@ -1185,9 +1185,10 @@
         log:                        function (){
             console.log.apply(this, arguments);
         },
-        verifyObject:               function (spec) {
+        verifyObject:               function (spec /*, strict=false */) {
             aa.arg.test(spec, isObject, `'spec'`);
-            return arg => isObject(arg) && arg.verify(spec);
+            const strict = arguments.length > 1 && isBool(arguments[1]) ? arguments[1] : false;
+            return arg => isObject(arg) && arg.verify(spec, strict);
         },
         warn:                       function (){
             console.warn.apply(this, arguments);
