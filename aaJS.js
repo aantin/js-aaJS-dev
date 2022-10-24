@@ -2361,6 +2361,48 @@
             });
             return false;
         },
+        sprinkle:           function (seasoning /*, options */) {
+            /**
+             * Add some key/value pairs to an Object if keys are not defined,
+             * or reset a value to a key if the original value's type dosen't match the given value's type.
+             * 
+             * @param {object} seasoning
+             * @param {object} options={} (optional)
+             *    @key {boolean} forcetype=false
+             * 
+             * @return {void}
+             */
+
+            aa.arg.test(seasoning, aa.isObject);
+            const options = aa.arg.optional(arguments, 1, {}, options => aa.isObject(options) && options.verify({
+                forceType: aa.isBool
+            }));
+
+            seasoning.forEach((value, key) => {
+                if (!this.hasOwnProperty(key)) {
+                    this[key] = value;
+                } else if (aa.isObject(this[key]) && aa.isObject(value)) {
+                    this[key].sprinkle(value, options);
+                } else if (this.hasOwnProperty(key)) {
+                    if (options.forceType) {
+                        [
+                            // arg => arg === null,
+                            // arg => arg === undefined,
+                            aa.isArray,
+                            aa.isBool,
+                            aa.isNumber,
+                            aa.isObject,
+                            // aa.isRegExp,
+                            aa.isString
+                        ].forEach(func => {
+                            if (func(this[key]) !== func(value)) {
+                                this[key] = value;
+                            }
+                        });
+                    }
+                }
+            });
+        },
         verify:             function (dict /*, strict */) {
             /**
              * @param {object} dict
@@ -2533,7 +2575,7 @@
 
             return this.filter((v, k)=>{ return !keys.has(k); });
         }
-    });
+    }, {force: true});
 
     // IMAGE functions:
     aa.deploy(Image.prototype, {
