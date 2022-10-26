@@ -1190,16 +1190,18 @@
             const strict = arguments.length > 1 && isBool(arguments[1]) ? arguments[1] : false;
             return arg => isObject(arg) && arg.verify(spec, strict);
         },
+        warn:                       function (){
+            console.warn.apply(this, arguments);
+        },
+    });
+    aa.deploy(aa, {
         wait: function (delay, callback) {
             aa.arg.test(delay, isStrictlyPositiveInt, `'delay'`);
             aa.arg.test(callback, isFunction, `'callback'`);
 
             window.setTimeout(callback, delay);
         },
-        warn:                       function (){
-            console.warn.apply(this, arguments);
-        },
-    });
+    }, {force: true});
 
     // NUMBER functions:
     aa.deploy(Number, {
