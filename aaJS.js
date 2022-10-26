@@ -1193,9 +1193,9 @@
         wait: function (delay, callback) {
             aa.arg.test(delay, isStrictlyPositiveInt, `'delay'`);
             aa.arg.test(callback, isFunction, `'callback'`);
-            
+
             window.setTimeout(callback, delay);
-        }
+        },
         warn:                       function (){
             console.warn.apply(this, arguments);
         },
