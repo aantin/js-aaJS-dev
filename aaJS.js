@@ -1190,6 +1190,12 @@
             const strict = arguments.length > 1 && isBool(arguments[1]) ? arguments[1] : false;
             return arg => isObject(arg) && arg.verify(spec, strict);
         },
+        wait: function (delay, callback) {
+            aa.arg.test(delay, isStrictlyPositiveInt, `'delay'`);
+            aa.arg.test(callback, isFunction, `'callback'`);
+            
+            window.setTimeout(callback, delay);
+        }
         warn:                       function (){
             console.warn.apply(this, arguments);
         },
