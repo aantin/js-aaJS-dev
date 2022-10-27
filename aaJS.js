@@ -380,7 +380,91 @@
     });
     // ----------------------------------------------------------------
     // Mixed functions:
-    aa.deploy(window, {
+    const functions = {
+        addHTML:                    function (identifiant, html) {
+            el(identifiant, node => {
+                node.innerHTML += html;
+            });
+        },
+        addScriptToDOM:             function (path) {
+            if (path && nonEmptyString(path)) {
+                path = path.trim();
+                const script = document.createElement("script");
+                script.setAttribute("charset", "utf-8");
+                script.src = path;
+                document.head.appendChild(script);
+            }
+        },
+        addStyleToScript:           function (scriptFilename, styleFilename) {
+            const path = findPathOf(scriptFilename);
+            if (path) {
+                var css = document.createElement("link");
+                css.rel  = "stylesheet";
+                css.type = "text/css";
+                css.href = path+'/'+styleFilename;
+                document.head.appendChild(css);
+            }
+        },
+        b64_to_utf8:                function (param){
+
+            return decodeURIComponent(escape(window.atob(param)));
+        },
+        bodyWrite:                  function (param){
+            var div = document.createElement('div');
+            div.innerHTML = param;
+            
+            document.body.appendChild(div);
+        },
+        copySelectionToClipboard:   function (){
+
+            document.execCommand('copy', true);
+            return;
+        },
+        copyTextToClipboard:        function (parametre){
+
+            var textareaDOM = document.createElement('textarea');
+            
+            // textareaDOM.setAttribute('style','display: none;');
+            textareaDOM.text = parametre;
+            document.body.appendChild(textareaDOM);
+            // $('body').append(textareaDOM);
+            textareaDOM.select();
+            document.execCommand('copy', true);
+            textareaDOM.remove();
+        },
+        dataURItoBlob:              function (dataURI, callback){
+            // convert base64 to raw binary data held in a string
+            // doesn't handle URLEncoded DataURIs - see SO answer #6850276 for code that does this
+            var byteString = atob(dataURI.split(',')[1]);
+
+            // separate out the mime component
+            var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+            // write the bytes of the string to an ArrayBuffer
+            var i;
+            var ab = new ArrayBuffer(byteString.length);
+            var ia = new Uint8Array(ab);
+            for (i=0; i<byteString.length; i++){
+                ia[i] = byteString.charCodeAt(i);
+            }
+
+            // write the ArrayBuffer to a blob, and you're done
+            var bb = new Blob([ab]);
+            return bb;
+        },
+        debug:                      function (){
+
+            alert('debug');
+        },
+        deprecated:                 function (name) {
+            /**
+             * @param String name
+             *
+             * @return void
+             */
+            if (!nonEmptyString(name)) { throw new TypeError("Argument must be a non-empty String."); }
+            console.warn("Deprecated: '"+name.trim()+"'. This feature is no longer recommended. Avoid using it, and update existing code if possible.");
+        },
         digit:                      function (param,digits) {
             var i;
             if (!isInt(digits) || !isInt(digits)) {
@@ -391,6 +475,23 @@
                 param = '0'+param;
             }
             return param;
+        },
+        dir:                        function () {
+            if (console && console.dir && arguments && arguments.length) {
+                if (arguments.length > 1) {
+                    console.group();
+                    arguments.forEach(function (o) {
+                        console.dir(o);
+                    });
+                    console.groupEnd();
+                    return true;
+                } else {
+                    console.dir(arguments[0]);
+                    return true;
+                }
+            }
+            console.log(undefined);
+            return false;
         },
         el:                         function (id) {
             /**
@@ -441,48 +542,81 @@
             }
             return undefined;
         },
-        dataURItoBlob:              function (dataURI, callback){
-            // convert base64 to raw binary data held in a string
-            // doesn't handle URLEncoded DataURIs - see SO answer #6850276 for code that does this
-            var byteString = atob(dataURI.split(',')[1]);
-
-            // separate out the mime component
-            var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
-
-            // write the bytes of the string to an ArrayBuffer
-            var i;
-            var ab = new ArrayBuffer(byteString.length);
-            var ia = new Uint8Array(ab);
-            for (i=0; i<byteString.length; i++){
-                ia[i] = byteString.charCodeAt(i);
+        findPathOf:                 function (filename) {
+            const folder = document
+                .getElementsByTagName("script")
+                .reduce(function (folder, script) {
+                    if (script && isObject(script) && script.src) {
+                        const re = new RegExp('^(.+)'+filename+'$','');
+                        const result = script.src.match(re);
+                        if (result && result.length>=2) {
+                            folder = result[1];
+                            if (folder.match(/[^\/](\/)$/)) {
+                                folder = folder.replace(/\/$/, '');
+                            }
+                        }
+                    }
+                    return folder;
+                }, undefined)
+            ;
+            return folder;
+        },
+        getCookie:                  function (sName) {
+            //if (navigator.cookieEnabled)test('navigator.cookieEnabled','enabled');
+            if (!document.cookie) {
+                //test('document.cookie','undefined');
             }
+            
+            var oRegex = new RegExp("(?:; )?" + sName + "=([^;]*);?");
 
-            // write the ArrayBuffer to a blob, and you're done
-            var bb = new Blob([ab]);
-            return bb;
+            if (oRegex.test(document.cookie)) {
+                return decodeURIComponent(RegExp["$1"]);
+            }
+            else {
+                return null;
+            }
         },
-        debug:                      function (){
-
-            alert('debug');
-        },
-        deprecated:                 function (name) {
-            /**
-             * @param String name
-             *
-             * @return void
-             */
-            if (!nonEmptyString(name)) { throw new TypeError("Argument must be a non-empty String."); }
-            console.warn("Deprecated: '"+name.trim()+"'. This feature is no longer recommended. Avoid using it, and update existing code if possible.");
-        },
-        todo:                       function (param) {
+        getFilename:                function (param) {
             if (isString(param)) {
-                var tab     = 32,
-                    method  = '';
-                if (arguments && arguments.length >= 2 && isString(arguments[1]) && arguments[1].trim()) {
-                    method = '('+arguments[1].trim()+')';
+                var temp = param.split('/');
+                if (temp && temp.length) {
+                    return temp[-1+temp.length];
                 }
-                log('todo:'+(method).padStart(tab)+' - '+param);
+                return param;
             }
+            return '???';
+        },
+        getScriptFolder:            function (file) {
+            var res = undefined;
+            var scripts = document.getElementsByTagName('script');
+            scripts.forEach(function (script) {
+                if (script && isObject(script) && script.src) {
+                    var re = new RegExp('^(.+)'+file+'$','');
+                    var result = script.src.match(re);
+                    if (result && result.length>=2) {
+                        res = result[1];
+                    }
+                }
+            });
+            return res;
+        },
+        getStyleFolder:             function (file) {
+            var res = undefined;
+            var links = document.getElementsByTagName('link');
+            links.forEach(function (link) {
+                if (link && isObject(link) && link.href) {
+                    var re = new RegExp('^(.+)'+file+'$','');
+                    var result = link.href.match(re);
+                    if (result && result.length>=2) {
+                        res = result[1];
+                    }
+                }
+            });
+            return res;
+        },
+        hasOption:                  function (list, option) {
+
+            return list.indexOf(option) > -1;
         },
         htmlEncode:                 function (str) {
             var i = str.length,
@@ -703,119 +837,9 @@
                 sel.addRange(range);
             }
         },
-        copySelectionToClipboard:   function (){
-
-            document.execCommand('copy', true);
-            return;
+        isArray:                    function (param){
+            return Array.isArray(param);
         },
-        copyTextToClipboard:        function (parametre){
-
-            var textareaDOM = document.createElement('textarea');
-            
-            // textareaDOM.setAttribute('style','display: none;');
-            textareaDOM.text = parametre;
-            document.body.appendChild(textareaDOM);
-            // $('body').append(textareaDOM);
-            textareaDOM.select();
-            document.execCommand('copy', true);
-            textareaDOM.remove();
-        },
-        toFloat:                    function (parametre) {
-
-            // var i;
-            // var decimales = 6;
-            
-            // parametre = ''+parametre;
-            // result = parametre.split('.');
-            // if (result && result.length > 1) {
-            
-                // parametre = result[0]+'.';
-                
-                // for(i=0; i<decimales; i++) {
-                    // parametre += result[1][i];
-                // }
-            // }
-            parametre = parseFloat(parametre);
-            return parametre;
-        },
-        getScriptFolder:            function (file) {
-            var res = undefined;
-            var scripts = document.getElementsByTagName('script');
-            scripts.forEach(function (script) {
-                if (script && isObject(script) && script.src) {
-                    var re = new RegExp('^(.+)'+file+'$','');
-                    var result = script.src.match(re);
-                    if (result && result.length>=2) {
-                        res = result[1];
-                    }
-                }
-            });
-            return res;
-        },
-        getStyleFolder:             function (file) {
-            var res = undefined;
-            var links = document.getElementsByTagName('link');
-            links.forEach(function (link) {
-                if (link && isObject(link) && link.href) {
-                    var re = new RegExp('^(.+)'+file+'$','');
-                    var result = link.href.match(re);
-                    if (result && result.length>=2) {
-                        res = result[1];
-                    }
-                }
-            });
-            return res;
-        },
-        addScriptToDOM:             function (path) {
-            if (path && nonEmptyString(path)) {
-                path = path.trim();
-                const script = document.createElement("script");
-                script.setAttribute("charset", "utf-8");
-                script.src = path;
-                document.head.appendChild(script);
-            }
-        },
-        addStyleToScript:           function (scriptFilename, styleFilename) {
-            const path = findPathOf(scriptFilename);
-            if (path) {
-                var css = document.createElement("link");
-                css.rel  = "stylesheet";
-                css.type = "text/css";
-                css.href = path+'/'+styleFilename;
-                document.head.appendChild(css);
-            }
-        },
-        findPathOf:                 function (filename) {
-            const folder = document
-                .getElementsByTagName("script")
-                .reduce(function (folder, script) {
-                    if (script && isObject(script) && script.src) {
-                        const re = new RegExp('^(.+)'+filename+'$','');
-                        const result = script.src.match(re);
-                        if (result && result.length>=2) {
-                            folder = result[1];
-                            if (folder.match(/[^\/](\/)$/)) {
-                                folder = folder.replace(/\/$/, '');
-                            }
-                        }
-                    }
-                    return folder;
-                }, undefined)
-            ;
-            return folder;
-        },
-        getFilename:                function (param) {
-            if (isString(param)) {
-                var temp = param.split('/');
-                if (temp && temp.length) {
-                    return temp[-1+temp.length];
-                }
-                return param;
-            }
-            return '???';
-        },
-        // https://stackoverflow.com/questions/24048547/checking-if-an-object-is-array-like
-        // See if it looks and smells like an iterable object, and do accept length === 0
         isArrayLike:                function(item) {
             return (
                 Array.isArray(item) || 
@@ -828,9 +852,6 @@
                     )
                 )
             );
-        },
-        isArray:                    function (param){
-            return Array.isArray(param);
         },
         isBool:                     function (o){
             return (o === true || o === false);
@@ -846,6 +867,12 @@
                 typeof HTMLElement === "object"
                 ? o instanceof HTMLElement
                 : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string"
+            );
+        },
+        isFile:                     function (file) {
+            return (
+                File !== undefined
+                && file instanceof File
             );
         },
         isFloat:                    function (n){
@@ -890,6 +917,7 @@
             
             return (isArray(a) && a.reduce((ok, v)=>{ return (!isString(v) ? false : ok); }, true));
         },
+        isNullOrNonEmptyString:     v => (v === null || aa.nonEmptyString(v)),
         isObjectOfFunctions:        function (o){
             return (
                 isObject(o)
@@ -927,8 +955,24 @@
                 return false;
             }
         },
+        log:                        function (){
+            console.log.apply(this, arguments);
+        },
         nonEmptyString:             function (s){
             return (isString(s) && s.trim());
+        },
+        purgeEventHandlers:         function (node) {
+            walkTheDOM(node, function (elt) {
+                for (let key in elt) {
+                    if (typeof elt[key] === "function") {
+                        elt[key] = null;
+                    }
+                }
+            });
+        },
+        removeDOM:                  function (elt){
+
+            elt.parentNode.removeChild(elt);
         },
         replace:                    function (car1,car2,param){
 
@@ -938,9 +982,22 @@
             
             return param.split(car1).join(car2);
         },
-        removeDOM:                  function (elt){
+        setCookie:                  function (sName, sValue){
+            var today = new Date();
+            var expires = new Date();
+            
+            expires.setTime(today.getTime() + (365*24*60*60*1000));
+            
+            document.cookie = sName + "=" + encodeURIComponent(sValue) + ";expires=" + expires.toGMTString(); //  + "; path=/"
+            //test('set.'+sName,sValue);
+        },
+        setHTML:                    function (identifiant,html) {
+            var html;
+            var identifiant;
 
-            elt.parentNode.removeChild(elt);
+            if (el(identifiant)) {
+                el(identifiant).innerHTML = html;
+            }
         },
         sortNatural:                function (a, b) {
             if (a === b) {
@@ -1022,79 +1079,6 @@
                 return undefined;
             }
         },
-        bodyWrite:                  function (param){
-
-            var div = document.createElement('div');
-            div.innerHTML = param;
-            
-            document.body.appendChild(div);
-        },
-        setHTML:                    function (identifiant,html) {
-
-            var html;
-            var identifiant;
-
-            if (el(identifiant)) {
-                el(identifiant).innerHTML = html;
-            }
-        },
-        addHTML:                    function (identifiant,html) {
-
-            var html;
-            var identifiant;
-
-            if (el(identifiant)) {
-                el(identifiant).innerHTML += html;
-            }
-        },
-        setCookie:                  function (sName, sValue){
-
-            var sValue;
-            
-            var today = new Date();
-            var expires = new Date();
-            
-            expires.setTime(today.getTime() + (365*24*60*60*1000));
-            
-            document.cookie = sName + "=" + encodeURIComponent(sValue) + ";expires=" + expires.toGMTString(); //  + "; path=/"
-            //test('set.'+sName,sValue);
-        },
-        getCookie:                  function (sName) {
-
-            //if (navigator.cookieEnabled)test('navigator.cookieEnabled','enabled');
-            if (!document.cookie) {
-                //test('document.cookie','undefined');
-            }
-            
-            var oRegex = new RegExp("(?:; )?" + sName + "=([^;]*);?");
-
-            if (oRegex.test(document.cookie)) {
-                return decodeURIComponent(RegExp["$1"]);
-            }
-            else {
-                return null;
-            }
-        },
-        unsetCookie:                function (sName){
-
-            createCookie(sName,"",-1);
-        },
-        hasOption:                  function (myTable,option) {
-
-            if (myTable.indexOf(option)) {
-                return true;
-            }
-            else {
-                return false;
-            }
-        },
-        utf8_to_b64:                function (param){
-            // return param;
-            return window.btoa(unescape(encodeURIComponent(param)));
-        },
-        b64_to_utf8:                function (param){
-            return decodeURIComponent(escape(window.atob(param)));
-        },
         testStorage:                function (type) {
             if (type !== "local" && type !== "session") {
                 throw new Error("Invalid parameter.");
@@ -1109,6 +1093,47 @@
             catch(e) {
                 return false;
             }
+        },
+        todo:                       function (param) {
+            if (isString(param)) {
+                var tab     = 32,
+                    method  = '';
+                if (arguments && arguments.length >= 2 && isString(arguments[1]) && arguments[1].trim()) {
+                    method = '('+arguments[1].trim()+')';
+                }
+                log('todo:'+(method).padStart(tab)+' - '+param);
+            }
+        },
+        toFloat:                    function (parametre) {
+
+            // var i;
+            // var decimales = 6;
+            
+            // parametre = ''+parametre;
+            // result = parametre.split('.');
+            // if (result && result.length > 1) {
+            
+                // parametre = result[0]+'.';
+                
+                // for(i=0; i<decimales; i++) {
+                    // parametre += result[1][i];
+                // }
+            // }
+            parametre = parseFloat(parametre);
+            return parametre;
+        },
+        unsetCookie:                function (sName){
+
+            createCookie(sName,"",-1);
+        },
+        utf8_to_b64:                function (param){
+            // return param;
+            return window.btoa(unescape(encodeURIComponent(param)));
+        },
+        verifyObject:               function (spec /*, strict=false */) {
+            aa.arg.test(spec, isObject, `'spec'`);
+            const strict = arguments.length > 1 && isBool(arguments[1]) ? arguments[1] : false;
+            return arg => isObject(arg) && arg.verify(spec, strict);
         },
         walkTheDOM:                 function (node,func){
             /**
@@ -1153,48 +1178,136 @@
                 node = node.nextSibling;
             }
         },
-        purgeEventHandlers:         function (node) {
-            /**
-             *  Author: Douglas Crockford
-             */
-            walkTheDOM(node, function (e) {
-                for (var n in e) {
-                    if (typeof e[n] === "function") {
-                        e[n] = null;
-                    }
-                }
-            });
-        },
-        dir:                        function () {
-            if (console && console.dir && arguments && arguments.length) {
-                if (arguments.length > 1) {
-                    console.group();
-                    arguments.forEach(function (o) {
-                        console.dir(o);
-                    });
-                    console.groupEnd();
-                    return true;
-                } else {
-                    console.dir(arguments[0]);
-                    return true;
-                }
-            }
-            console.log(undefined);
-            return false;
-        },
-        log:                        function (){
-            console.log.apply(this, arguments);
-        },
-        verifyObject:               function (spec /*, strict=false */) {
-            aa.arg.test(spec, isObject, `'spec'`);
-            const strict = arguments.length > 1 && isBool(arguments[1]) ? arguments[1] : false;
-            return arg => isObject(arg) && arg.verify(spec, strict);
-        },
         warn:                       function (){
             console.warn.apply(this, arguments);
         },
-    });
+    };
+    aa.deploy(window, functions, {force: true});
+    aa.deploy(aa, functions, {force: true});
     aa.deploy(aa, {
+        defineAccessors: function (accessors /*, spec */) {
+            const spec = arguments && arguments.length > 1 ? arguments[1] : {};
+
+            aa.arg.test(accessors, isObject, `'accessors'`);
+            aa.arg.test(spec, isObject, `'spec'`);
+
+            aa.verify.call(accessors, {
+                execute: aa.isObject,
+                privates: aa.isObject,
+                publics: aa.isObject,
+                read: aa.isObject,
+                write: aa.isObject
+            });
+            aa.verify.call(spec, {
+                getter: aa.isFunction,
+                setter: aa.isFunction,
+            });
+
+            const getter = spec.getter || get;
+            const setter = spec.setter || set;
+
+            accessors.forEach((keyValues, accessor) => {
+                keyValues.forEach((value, key) => {
+                    const thisSetter = 'set'+key.firstToUpper();
+                    setter(this, key, value);
+                    switch (accessor) {
+                        case 'publics':
+                            Object.defineProperty(this, key, {
+                                get: () => {
+                                    return getter(this, key);
+                                },
+                                set: (value) => {
+                                    if (typeof this[thisSetter] === 'function') {
+                                        this[thisSetter].call(this, value);
+                                    } else {
+                                        console.warn("Setter '"+key+"' not implemented.");
+                                    }
+                                }
+                            });
+                            break;
+                        case 'read':
+                            Object.defineProperty(this, key, {
+                                get: () => {
+                                    return getter(this, key);
+                                }
+                            });
+                            break;
+                        case 'write':
+                            Object.defineProperty(this, key, {
+                                set: (value) => {
+                                    if (typeof this[thisSetter] === 'function') {
+                                        this[thisSetter].call(this, value);
+                                    } else {
+                                        console.warn("Setter '"+key+"' not implemented.");
+                                    }
+                                }
+                            });
+                            break;
+                        case 'execute':
+                            Object.defineProperty(this, key, {
+                                get: () => {
+                                    return getter(this, key).call(this);
+                                }
+                            });
+                            break;
+                    }
+                });
+            });
+        },
+        getFilesFromDataTransfer: function (dataTransfer) {
+            const files = [];
+            if (dataTransfer.items) {
+                Array.from(dataTransfer.items)
+                .filter(item => item.kind === `file`)
+                .forEach(item => {
+                    const file = item.getAsFile();
+                    files.push(file);
+                });
+            } else {
+                Array.from(dataTransfer.files).forEach(file => {
+                    files.push(file);
+                });
+            }
+            return files;
+        },
+        mapFactory: function () {
+            const privates = new WeakMap();
+            return Object.freeze({
+                /**
+                 * @param {any} that;
+                 * @param {any} key;
+                 *
+                 * @return {any}
+                 */
+                get: function (that, key) {
+                    aa.arg.test(key, nonEmptyString, `'key'`);
+
+                    const results = privates.get(that, "data");
+                    if (!results) {
+                        return undefined;
+                    }
+                    return results[key];
+                },
+
+                /**
+                 * @param {any} that;
+                 * @param {String} key;
+                 * @param {any} value;
+                 *
+                 * @return {void}
+                 */
+                set: function (that, key, value) {
+                    aa.arg.test(key, nonEmptyString, `'key'`);
+
+                    let data = privates.get(that, "data");
+                    if (!data) {
+                        data = {};
+                    }
+                    data[key] = value;
+                    privates.set(that, data);
+                }
+            });
+        },
         wait: function (delay, callback) {
             aa.arg.test(delay, isStrictlyPositiveInt, `'delay'`);
             aa.arg.test(callback, isFunction, `'callback'`);
@@ -2012,7 +2125,7 @@
             }
             return value;
         },
-    });
+    }, {force: true});
 
     // OBJECT functions:
     aa.deploy(Object, {
