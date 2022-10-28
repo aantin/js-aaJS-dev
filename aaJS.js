@@ -1804,6 +1804,12 @@
         hasKeyObject:   function (param){
             return (typeof this[param] !== 'undefined' && isObject(this[param]));
         },
+        pushUnique: function (item) {
+            if (this.indexOf(item) < 0) {
+                this.push(item);
+            }
+            return this.length;
+        }
         removeElement:  function (element) {
             var i = this.indexOf(element);
             if (i > -1) {
