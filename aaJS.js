@@ -2580,18 +2580,22 @@
             });
             return acc
         },
-        some:               function (callback /*, thisArg */) {
-            if (this == null) { throw new TypeError("Object.some called on null or undefined"); }
-            if (typeof callback !== "function") { throw new TypeError(callback + " is not a fonction"); }
-            
-            const that = Object(this);
-            const thisArg = arguments.length > 1 ? arguments[1] : undefined;
-
-            that.keys().forEach((k)=>{
-                if (callback.call(thisArg, that[k], k, that)) {
+        some:               function (callback /*, that */) {
+            aa.arg.test(callback, aa.isFunction, `'callback'`);
+            const that = aa.arg.optional(arguments, 1, undefined);
+        
+            if (!this) {
+                throw new TypeError(`Object.prototype.find called on null or undefined`);
+            }
+        
+            const keys = Object.keys(this);
+            for (let i=0; i<keys.length; i++) {
+                const isVerified = callback.call(that, this[key], key, this);
+                if (!aa.isBool(isVerified)) { throw new TypeError(`'callback' Function must return a Boolean.`); }
+                if (isVerified) {
                     return true;
                 }
-            });
+            }
             return false;
         },
         sprinkle:           function (seasoning /*, options */) {
