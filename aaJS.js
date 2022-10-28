@@ -1194,7 +1194,7 @@
     aa.deploy(window, functions, {force: true});
     aa.deploy(aa, functions, {force: true});
     aa.deploy(aa, {
-        defineAccessors: function (accessors /*, spec */) {
+        defineAccessors:            function (accessors /*, spec */) {
             const spec = arguments && arguments.length > 1 ? arguments[1] : {};
 
             aa.arg.test(accessors, isObject, `'accessors'`);
@@ -1263,7 +1263,7 @@
                 });
             });
         },
-        getFilesFromDataTransfer: function (dataTransfer) {
+        getFilesFromDataTransfer:   function (dataTransfer) {
             const files = [];
             if (dataTransfer.items) {
                 Array.from(dataTransfer.items)
@@ -1279,7 +1279,7 @@
             }
             return files;
         },
-        mapFactory: function () {
+        mapFactory:                 function () {
             const privates = new WeakMap();
             const id = aa.uid();
             const methods = {
@@ -1365,7 +1365,16 @@
             });
             return Object.freeze(methods);
         },
-        uid: (function () {
+        throwErrorIf:               function (condition /*, message, ErrorClass */) {
+            aa.arg.test(condition, aa.isBool, `'condition'`);
+            const message = aa.arg.optional(arguments, 1, undefined, aa.nonEmptyString);
+            const ErrorClass = aa.arg.optional(arguments, 2, Error);
+        
+            if (condition) {
+                throw new ErrorClass(message);
+            }
+        },
+        uid:                        (function () {
             let x = 0;
             return function () {
                 let i;
@@ -1383,7 +1392,7 @@
                 return uid;
             };
         })(),
-        uuidv4: function () {
+        uuidv4:                     function () {
             /**
              * Found at https://stackoverflow.com/a/8809472
              */
@@ -1396,7 +1405,7 @@
             });
             return uuid;
         },
-        wait: function (delay, callback) {
+        wait:                       function (delay, callback) {
             aa.arg.test(delay, isStrictlyPositiveInt, `'delay'`);
             aa.arg.test(callback, isFunction, `'callback'`);
 
