@@ -355,7 +355,7 @@
                         'must be an Array of Strings': isArrayOfStrings,
                         'must be an Array of Functions': isArrayOfFunctions,
                         'must be a Function': isFunction,
-                        'must be a String': isString,
+                        'must be a String': aa.isString,
                         'must be a non-empty String': nonEmptyString,
                         'must be an Integer': isInt,
                         'must be a Number': isNumber,
@@ -577,7 +577,7 @@
             }
         },
         getFilename:                function (param) {
-            if (isString(param)) {
+            if (aa.isString(param)) {
                 var temp = param.split('/');
                 if (temp && temp.length) {
                     return temp[-1+temp.length];
@@ -770,7 +770,7 @@
 
                 // if (isNode(insertNode)) {
                 //     doc.execCommand('insertHTML',false,insertNode.outerHTML+' ');
-                // } else if (isString(insertNode)) {
+                // } else if (aa.isString(insertNode)) {
                 //     doc.execCommand('insertHTML',false,insertNode);
                 // }
                 // return;
@@ -905,6 +905,11 @@
         isObject:                   function (param){
             return (typeof param === 'object' && param !== null && !Array.isArray(param));
         },
+        isArrayOf:                  function (callback) {
+            return function (list) {
+                return aa.isArray(list) && list.every(callback);
+            };
+        },
         isArrayOfFunctions:         function (a){
 
             return (isArray(a) && a.reduce((ok, v)=>{ return (!isFunction(v) ? false : ok); }, true));
@@ -915,9 +920,14 @@
         },
         isArrayOfStrings:           function (a){
             
-            return (isArray(a) && a.reduce((ok, v)=>{ return (!isString(v) ? false : ok); }, true));
+            return (isArray(a) && a.reduce((ok, v)=>{ return (!aa.isString(v) ? false : ok); }, true));
         },
         isNullOrNonEmptyString:     v => (v === null || aa.nonEmptyString(v)),
+        isObjectOf:                 function (callback) {
+            return function (collection) {
+                return aa.isObject(collection) && collection.every(callback);
+            };
+        },
         isObjectOfFunctions:        function (o){
             return (
                 isObject(o)
@@ -946,20 +956,19 @@
                 && param.__proto__.constructor.name === "RegExp"
             );
         },
-        isString:                   function (parametre) {
-
-            if (typeof(parametre) === 'string') {
-                return true;
-            }
-            else {
-                return false;
-            }
+        isString:                   function (value) {
+            return (
+                typeof(value) === 'string'
+            );
         },
         log:                        function (){
             console.log.apply(this, arguments);
         },
-        nonEmptyString:             function (s){
-            return (isString(s) && s.trim());
+        nonEmptyString:             function (str) {
+            return (
+                aa.isString(str)
+                && str.trim().length > 0
+            );
         },
         purgeEventHandlers:         function (node) {
             walkTheDOM(node, function (elt) {
@@ -1006,7 +1015,7 @@
                 a = isNumber(a) ? a.toString() : a;
                 b = isNumber(b) ? b.toString() : b;
 
-                if (isString(a) && isString(b)) {
+                if (aa.isString(a) && aa.isString(b)) {
                     a = a.toLowerCase().noAccent();
                     b = b.toLowerCase().noAccent();
 
@@ -1095,10 +1104,10 @@
             }
         },
         todo:                       function (param) {
-            if (isString(param)) {
+            if (aa.isString(param)) {
                 var tab     = 32,
                     method  = '';
-                if (arguments && arguments.length >= 2 && isString(arguments[1]) && arguments[1].trim()) {
+                if (arguments && arguments.length >= 2 && aa.isString(arguments[1]) && arguments[1].trim()) {
                     method = '('+arguments[1].trim()+')';
                 }
                 log('todo:'+(method).padStart(tab)+' - '+param);
@@ -1159,7 +1168,7 @@
                     case 'except':
                         if (isArray(value)) {
                             value.forEach(function (s) {
-                                if (isString(s) && s.trim()) {
+                                if (aa.isString(s) && s.trim()) {
                                     except.push(s.trim().toLowerCase());
                                 }
                             });
@@ -1272,7 +1281,8 @@
         },
         mapFactory: function () {
             const privates = new WeakMap();
-            return Object.freeze({
+            const id = aa.uid();
+            const methods = {
                 /**
                  * @param {any} that;
                  * @param {any} key;
@@ -1291,7 +1301,29 @@
 
                 /**
                  * @param {any} that;
-                 * @param {String} key;
+                 *
+                 * @return {function}
+                 */
+                getter: function (that) {
+                    /**
+                     * @param {any} key;
+                     *
+                     * @return {any}
+                     */
+                    return function (key) {
+                        aa.arg.test(key, nonEmptyString, `'key'`);
+
+                        const results = privates.get(that, "data");
+                        if (!results) {
+                            return undefined;
+                        }
+                        return results[key];
+                    };
+                },
+
+                /**
+                 * @param {any} that;
+                 * @param {string} key;
                  * @param {any} value;
                  *
                  * @return {void}
@@ -1305,8 +1337,64 @@
                     }
                     data[key] = value;
                     privates.set(that, data);
-                }
+                },
+
+                /**
+                 * @param {any} that;
+                 *
+                 * @return {function}
+                 */
+                setter: function (that) {
+                    /**
+                     * @param {string} key;
+                     * @param {any} value;
+                     *
+                     * @return {any}
+                     */
+                    return function (key, value) {
+                        aa.arg.test(key, nonEmptyString, `'key'`);
+
+                        const data = privates.get(that, "data") || {};
+                        data[key] = value;
+                        privates.set(that, data);
+                    };
+                },
+            };
+            Object.keys(methods).forEach(key => {
+                methods[key].id = id;
             });
+            return Object.freeze(methods);
+        },
+        uid: (function () {
+            let x = 0;
+            return function () {
+                let i;
+                let prefix = '';
+                let now = Date.now().toString(16)+x.toString(16);
+
+                for (i=0; i<32-now.length; i++) {
+                    prefix += Math.floor(16*Math.random()).toString(16);
+                }
+                now = prefix+now;
+                const p = now.match(/^.*([0-9a-f]{8})([0-9a-f]{4})([0-9a-f]{3})([0-9a-f]{4})([0-9a-f]{12})$/);
+                const uid = p[1]+'-'+p[2]+'-4'+p[3]+'-'+p[4]+'-'+p[5];
+
+                x++;
+                return uid;
+            };
+        })(),
+        uuidv4: function () {
+            /**
+             * Found at https://stackoverflow.com/a/8809472
+             */
+            deprecated("aa.uuidv4");
+            var dt = new Date().getTime();
+            var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+                var r = (dt + Math.random()*16)%16 | 0;
+                dt = Math.floor(dt/16);
+                return (c=='x' ? r :(r&0x3|0x8)).toString(16);
+            });
+            return uuid;
         },
         wait: function (delay, callback) {
             aa.arg.test(delay, isStrictlyPositiveInt, `'delay'`);
@@ -1379,7 +1467,7 @@
             return decodeURIComponent(escape(window.atob(this.valueOf())));
         },
         compare:                function (str) {
-            if (!isString(str)) { throw new TypeError("Argument must be a String."); }
+            if (!aa.isString(str)) { throw new TypeError("Argument must be a String."); }
 
             const that = this.toString()+'';
             const o = {
@@ -1465,7 +1553,7 @@
             return aRet.join('');    
         },
         isEqual:                function (str) {
-            if (!isString(str)) { throw new TypeError("Argument must be a String."); }
+            if (!aa.isString(str)) { throw new TypeError("Argument must be a String."); }
 
             if (str.length !== this.length) {
                 return false;
@@ -1535,7 +1623,7 @@
                 throw new TypeError('First argument must a number.');
             }
             if (arguments && arguments.length > 1) {
-                if (isNumber(arguments[1]) || (isString(arguments[1]) && arguments[1].trim())) {
+                if (isNumber(arguments[1]) || (aa.isString(arguments[1]) && arguments[1].trim())) {
                     str = ''+arguments[1];
                 } else {
                     throw new TypeError('Invalid second argument.');
@@ -1558,7 +1646,7 @@
                 throw new TypeError('First argument must a number.');
             }
             if (arguments && arguments.length > 1) {
-                if (isNumber(arguments[1]) || (isString(arguments[1]) && arguments[1].trim())) {
+                if (isNumber(arguments[1]) || (aa.isString(arguments[1]) && arguments[1].trim())) {
                     str = ''+arguments[1];
                 } else {
                     throw new TypeError('Invalid second argument.');
@@ -1705,7 +1793,7 @@
             return (this[param] !== undefined);
         },
         hasKeyString:   function (param){
-            return (typeof this[param] !== 'undefined' && isString(this[param]));
+            return (typeof this[param] !== 'undefined' && aa.isString(this[param]));
         },
         hasKeyInt:      function (param){
             return (typeof this[param] !== 'undefined' && isInt(this[param]));
@@ -2164,7 +2252,7 @@
         cancel:             function (eventName, callback) {
             var bubble = (arguments && arguments.length > 2 && isBool(arguments[2]) ? arguments[2] : false);
 
-            if (!isString(eventName) || !eventName.trim()) {
+            if (!aa.isString(eventName) || !eventName.trim()) {
                 throw TypeError("Event name is not a valid string.");
             }
             if (typeof callback !== "function") {
@@ -2182,7 +2270,7 @@
             if (
                 this === null
                 || this === undefined
-                || isString(this)
+                || aa.isString(this)
             ) {
                 o = this;
             } else if (isArray(this)) {
@@ -2350,7 +2438,7 @@
         },
         hasKeyString:       function (param){
 
-            return (this[param] !== undefined && isString(this[param]));
+            return (this[param] !== undefined && aa.isString(this[param]));
         },
         hasKeyInt:          function (param){
 
@@ -2420,7 +2508,7 @@
             const o = new Object();
             const thisArg = arguments && arguments.length > 1 ? arguments[1] : undefined;
 
-            that.keys().forEach((k)=>{
+            that.keys().forEach((k) => {
                 if (that.hasOwnProperty(k)) {
                     const value = that[k];
                     const mappedValue = callback.call(thisArg, value, k, that);
@@ -2440,7 +2528,7 @@
                 return this;
             }
 
-            if (!isString(eventName) || !eventName.trim()) {
+            if (!aa.isString(eventName) || !eventName.trim()) {
                 throw TypeError("Event name is not a valid string.");
             }
             if (!isFunction(callback) && !isObject(callback)) {
@@ -2514,7 +2602,7 @@
                             isNumber,
                             isObject,
                             // isRegExp,
-                            isString
+                            aa.isString
                         ].forEach(func => {
                             if (func(this[key]) !== func(value)) {
                                 this[key] = value;
@@ -2568,7 +2656,7 @@
         diveByClass:        function (className,func) {
             /**
              */
-            if (isString(className) && className.trim()) {}
+            if (aa.isString(className) && className.trim()) {}
             var that = Object(this);
             that.diveTheDOM(function () {
                 var classes;
@@ -3196,11 +3284,11 @@
                         arguments[0].forEach(function (v,k) {
                             if (this.__self.hasOwnProperty(k)) {
                                 if (typeof v === typeof this.__self[k]) {
-                                    if (isString(v)) {
+                                    if (aa.isString(v)) {
                                         this.__self[k] = v;
                                     } else if (isArray(v)) {
                                         v.forEach(function (txt,j) {
-                                            if (isString(txt)) {
+                                            if (aa.isString(txt)) {
                                                 this.__self[k].push(txt);
                                             } else {
                                                 this.__private.valid = false;
