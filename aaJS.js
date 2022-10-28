@@ -2500,13 +2500,13 @@
             
             return Object.keys(this);
         },
-        /*
-         * How to use:
-            obj.map(function (value, key[, item]) {
-                return newValue;
-            });
-        */
         map:                function (callback /*, thisArg*/) {
+            /*
+             * How to use:
+                obj.map(function (value, key[, item]) {
+                    return newValue;
+                });
+            */
             if (this == null) { throw new TypeError("Object.map called on null or undefined"); }
             if (typeof callback !== "function") { throw new TypeError(callback + " is not a fonction"); }
 
@@ -2617,6 +2617,17 @@
                     }
                 }
             });
+        },
+        toSortedArray: function () {
+            return (Object
+                .keys(this)
+                .sort()
+                .reduce((list, key) => {
+                    list[0].push(key);
+                    list[1].push(this[key]);
+                    return list;
+                }, [[], []])
+            );
         },
         verify:             function (dict /*, strict */) {
             /**
