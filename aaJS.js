@@ -1660,6 +1660,15 @@
             }
             return that.substr(0,pad);
         },
+        reverse:                function () {
+            let str = '';
+            if (this.length > 0) {
+                for (let i=this.length-1; i>-1; i--) {
+                    str += this[i];
+                }
+            }
+            return str;
+        },
         // ----------------------------------------------------------------
         filter: function (callback /*, thisArg */) {
             if (!isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
