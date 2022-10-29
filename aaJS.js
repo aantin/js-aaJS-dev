@@ -2243,6 +2243,13 @@
                 return sha512;
             })()
         },
+        isInArray:                  function (list) {
+            aa.arg.test(list, aa.isArray, `'list'`);
+
+            return function (item) {
+                return list.has(item);
+            };
+        },
         mapFactory:                 function () {
             const privates = new WeakMap();
             const id = aa.uid();
