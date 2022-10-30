@@ -3514,6 +3514,21 @@
         },
         // See 'Object.cancel' to remove listeners
         on:                 function (eventName, callback) {
+            /**
+             * Usage:
+             * Object
+             *      .on(`eventname`, e => {})
+             *      .on(`anothereventname`, e => {});
+             * Object.on({
+             *      eventname: e => {},
+             *      anothereventname: e => {},
+             * });
+             * 
+             * @param {string} eventName
+             * @param {function} callback
+             * 
+             * @return {object} this, for chaining
+             */
             var bubble = (arguments && arguments.length>2 && arguments[2] === true);
 
             if (isObject(eventName)) {
