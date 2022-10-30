@@ -3763,7 +3763,7 @@
             /**
              * thisNode.removeNode();
              */
-            if (isDom(this)) {
+            if (isDom(this) && this.parentNode) {
                 let o = {reference: this.parentNode.removeChild(this)};
                 delete o.reference;
             }
