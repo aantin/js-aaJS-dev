@@ -3627,6 +3627,11 @@
             });
         },
         toSortedArray: function () {
+            /**
+             * Return an array of two arrays. The first array contains the keys, sorted. The second array contains their coresponding values.
+             * 
+             * @return {array[]}
+             */
             return (Object
                 .keys(this)
                 .sort()
