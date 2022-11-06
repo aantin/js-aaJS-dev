@@ -4161,17 +4161,15 @@
             } else { throw new TypeError("Argument must be an Object."); }
         }
     };
-    aa.debounce = Object.freeze(function (callback, delay=20, spec={}) {
+    aa.debounce = Object.freeze(function (callback, delay=20) {
         /**
          * @param {Function} callback
          * @param {Integer} delay=20
-         * @param {Object} spec={}
          *
          * @return {void}
          */
         if (!isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
         if (!isNumber(delay) || delay < 0) { throw new TypeError("Second argument must be an Integer greater than 0."); }
-        if (!isObject(spec)) { throw new TypeError("Third argument must be an Object."); }
 
         let timer;
         return Object.freeze(function () {
