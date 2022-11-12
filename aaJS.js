@@ -2374,7 +2374,73 @@
             });
             return uuid;
         },
-        wait:                       function (delay, callback) {
+    }, {force: true});
+    aa.deploy(aa, {
+        debounce:   function (callback, delay=20) {
+            /**
+             * @param {Function} callback
+             * @param {Integer} delay=20
+             *
+             * @return {void}
+             */
+            if (!isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
+            if (!isNumber(delay) || delay < 0) { throw new TypeError("Second argument must be an Integer greater than 0."); }
+
+            let timer;
+            return Object.freeze(function () {
+                const that = this;
+                const args = arguments;
+
+                window.clearTimeout(timer);
+                timer = window.setTimeout(()=>{
+                    callback.apply(that, args);
+                }, delay);
+            });
+        },
+        throttle:   function (callback, spec={}) {
+            /**
+             * @param {Function} callback
+             * @param {Object|Int} spec={delay: 20, end: true, start: true} (optional) If Integer is given: assign value to spec.delay
+             *
+             * @return {void}
+             */
+            if (!isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
+            if (!isObject(spec) && !isInt(spec)) { throw new TypeError("Second argument must be an Object or a positive Integer."); }
+            if (isInt(spec)) {
+                spec = { delay: spec };
+            }
+            spec.sprinkle({
+                delay: 20,
+                end: true,
+                start: true
+            });
+            aa.arg.test(spec, aa.verifyObject({
+                delay: (n)=>{ return isInt(n) && n >= 0; },
+                end: isBool,
+                start: isBool
+            }), `'spec'`);
+
+            let timer;
+            let last;
+            return function () {
+                const that = this;
+                const args = arguments;
+
+                const now = Date.now();
+                if (!last || now > last+spec.delay) {
+                    if (!last && spec.start) {
+                        callback.apply(that, args);
+                    }
+                    window.clearTimeout(timer);
+                    timer = window.setTimeout(()=>{
+                        callback.apply(that, args);
+                        last = null;
+                    }, spec.delay);
+                    last = now;
+                }
+            };
+        },
+        wait:       function (delay, callback) {
             aa.arg.test(delay, isStrictlyPositiveInt, `'delay'`);
             aa.arg.test(callback, isFunction, `'callback'`);
 
@@ -4161,71 +4227,6 @@
             } else { throw new TypeError("Argument must be an Object."); }
         }
     };
-    aa.debounce = Object.freeze(function (callback, delay=20) {
-        /**
-         * @param {Function} callback
-         * @param {Integer} delay=20
-         *
-         * @return {void}
-         */
-        if (!isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
-        if (!isNumber(delay) || delay < 0) { throw new TypeError("Second argument must be an Integer greater than 0."); }
-
-        let timer;
-        return Object.freeze(function () {
-            const that = this;
-            const args = arguments;
-
-            window.clearTimeout(timer);
-            timer = window.setTimeout(()=>{
-                callback.apply(that, args);
-            }, delay);
-        });
-    });
-    aa.throttle = Object.freeze(function (callback, spec={}) {
-        /**
-         * @param {Function} callback
-         * @param {Object|Int} spec={delay: 20, end: true, start: true} (optional) If Integer is given: assign value to spec.delay
-         *
-         * @return {void}
-         */
-        if (!isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
-        if (!isObject(spec) && !isInt(spec)) { throw new TypeError("Second argument must be an Object or a positive Integer."); }
-        if (isInt(spec)) {
-            spec = { delay: spec };
-        }
-        const defaultSpec = {
-            delay: 20,
-            end: true,
-            start: true
-        };
-        spec = Object.assign(defaultSpec, spec);
-        spec.verify({
-            delay: (n)=>{ return isInt(n) && n >= 0; },
-            end: isBool,
-            start: isBool
-        });
-
-        let timer;
-        let last;
-        return Object.freeze(function () {
-            const that = this;
-            const args = arguments;
-
-            const now = Date.now();
-            if (!last || now > last+spec.delay) {
-                if (!last && spec.start) {
-                    callback.apply(that, args);
-                }
-                window.clearTimeout(timer);
-                timer = window.setTimeout(()=>{
-                    callback.apply(that, args);
-                    last = null;
-                }, spec.delay);
-                last = now;
-            }
-        });
-    });
     // ----------------------------------------------------------------
     aa.versioning = new (function () {
         // Dependencies syntax (https://semver.org/):
