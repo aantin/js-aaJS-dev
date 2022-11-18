@@ -7,7 +7,7 @@
     const versioning = {
         aaJS: {
             version: {
-                version: "2.0",
+                version: "3.0",
                 dependencies: {}
             }
         }
@@ -63,8 +63,8 @@
                      *
                      * @return {undefined | object}
                      */
-                    aa.arg.test(null, isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
-                    aa.arg.test(null, isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
+                    aa.arg.test(null, aa.isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
+                    aa.arg.test(null, aa.isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
 
                     const x1 = a[0];
                     const y1 = a[1];
@@ -85,12 +85,12 @@
             },
             circle: {
                 getBy:          function (spec) {
-                    aa.arg.test(null, isObject(spec) && spec.verify({
-                        center: v => (isArray(v) && v.length === 2),
-                        point: v => (isArray(v) && v.length === 2),
-                        radius: isStrictlyPositiveNumber,
-                        three: v => (isArray(v) && v.length === 3),
-                        two: v => (isArray(v) && v.length === 2)
+                    aa.arg.test(null, aa.isObject(spec) && spec.verify({
+                        center: v => (aa.isArray(v) && v.length === 2),
+                        point: v => (aa.isArray(v) && v.length === 2),
+                        radius: aa.isStrictlyPositiveNumber,
+                        three: v => (aa.isArray(v) && v.length === 3),
+                        two: v => (aa.isArray(v) && v.length === 2)
                     }));
                     if (spec.three) {
                         return aa.geometry.circle.functionByThree.apply(this, spec.three);
@@ -134,9 +134,9 @@
                      *
                      * @return {undefined | object}
                      */
-                    aa.arg.test(null, isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
-                    aa.arg.test(null, isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
-                    aa.arg.test(null, isArrayOfNumbers(c) && c.length === 2, 2, "must be an Array of two Numbers");
+                    aa.arg.test(null, aa.isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
+                    aa.arg.test(null, aa.isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
+                    aa.arg.test(null, aa.isArrayOfNumbers(c) && c.length === 2, 2, "must be an Array of two Numbers");
 
                     if (JSON.stringify(a) === JSON.stringify(b) || JSON.stringify(a) === JSON.stringify(c) || JSON.stringify(b) === JSON.stringify(c)) {
                         cease("All three given points must have different coordinates.");
@@ -192,9 +192,9 @@
                      *
                      * @return {undefined | object}
                      */
-                    aa.arg.test(null, isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
-                    aa.arg.test(null, isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
-                    aa.arg.test(null, isArrayOfNumbers(c) && c.length === 2, 2, "must be an Array of two Numbers");
+                    aa.arg.test(null, aa.isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
+                    aa.arg.test(null, aa.isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
+                    aa.arg.test(null, aa.isArrayOfNumbers(c) && c.length === 2, 2, "must be an Array of two Numbers");
 
                     const x1 = a[0];
                     const y1 = a[1];
@@ -227,9 +227,9 @@
                      *
                      * @return {undefined | object}
                      */
-                    aa.arg.test(null, isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
-                    aa.arg.test(null, isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
-                    aa.arg.test(null, isArrayOfNumbers(c) && c.length === 2, 2, "must be an Array of two Numbers");
+                    aa.arg.test(null, aa.isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
+                    aa.arg.test(null, aa.isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
+                    aa.arg.test(null, aa.isArrayOfNumbers(c) && c.length === 2, 2, "must be an Array of two Numbers");
 
                     const x1 = a[0];
                     const y1 = a[1];
@@ -272,9 +272,9 @@
                      *
                      * @return {undefined | object}
                      */
-                    aa.arg.test(null, isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
-                    aa.arg.test(null, isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
-                    aa.arg.test(null, isArrayOfNumbers(c) && c.length === 2, 2, "must be an Array of two Numbers");
+                    aa.arg.test(null, aa.isArrayOfNumbers(a) && a.length === 2, 0, "must be an Array of two Numbers");
+                    aa.arg.test(null, aa.isArrayOfNumbers(b) && b.length === 2, 1, "must be an Array of two Numbers");
+                    aa.arg.test(null, aa.isArrayOfNumbers(c) && c.length === 2, 2, "must be an Array of two Numbers");
 
                     const x1 = a[0];
                     const y1 = a[1];
@@ -307,9 +307,9 @@
             optional:    function (args, i, defaultValue /*, condition */) {
                 const condition = arguments && arguments.length > 3 ? arguments[3] : () => true;
 
-                if (!isArrayLike(args)) { throw new TypeError("First argument must be an Array."); }
-                if (!isPositiveInt(i)) { throw new TypeError("Second argument must be a positive Integer."); }
-                if (!isFunction(condition)) { throw new TypeError("Fourth argument must be a Function."); }
+                if (!aa.isArrayLike(args)) { throw new TypeError("First argument must be an Array."); }
+                if (!aa.isPositiveInt(i)) { throw new TypeError("Second argument must be a positive Integer."); }
+                if (!aa.isFunction(condition)) { throw new TypeError("Fourth argument must be a Function."); }
 
                 return (args.length > i && condition(args[i]) ?
                     args[i]
@@ -317,15 +317,15 @@
                 );
             },
             test:   function (arg, tester /* [, position [, message]] */) {
-                if (!isFunction(tester) && !isBool(tester)) { throw new TypeError("Second argument must be a Function."); }
+                if (!aa.isFunction(tester) && !aa.isBool(tester)) { throw new TypeError("Second argument must be a Function."); }
 
                 let i;
                 const argv = [];
                 for (i=2; i<arguments.length; i++) {
                     argv.push(arguments[i]);
                 }
-                const position = argv.find(isPositiveInt);
-                const message = argv.find(nonEmptyString) || "invalid";
+                const position = argv.find(aa.isPositiveInt);
+                const message = argv.find(aa.nonEmptyString) || "invalid";
 
                 const writeMessage = function (position, str) {
                     const positions = [
@@ -346,20 +346,20 @@
                     return (parts.join(' ')+'.').replace(/\.+$/, '.');
                 };
 
-                if (isBool(tester) && !tester) {
+                if (aa.isBool(tester) && !tester) {
                     throw new TypeError(writeMessage(position, message));
-                } else if (isFunction(tester) && !tester(arg)) {
+                } else if (aa.isFunction(tester) && !tester(arg)) {
                     const testers = {
-                        'must be an Object': isObject,
-                        'must be an Array': isArray,
-                        'must be an Array of Strings': isArrayOfStrings,
-                        'must be an Array of Functions': isArrayOfFunctions,
-                        'must be a Function': isFunction,
+                        'must be an Object': aa.isObject,
+                        'must be an Array': aa.isArray,
+                        'must be an Array of Strings': aa.isArrayOfStrings,
+                        'must be an Array of Functions': aa.isArrayOfFunctions,
+                        'must be a Function': aa.isFunction,
                         'must be a String': aa.isString,
-                        'must be a non-empty String': nonEmptyString,
-                        'must be an Integer': isInt,
-                        'must be a Number': isNumber,
-                        'must be a positive Integer': isPositiveInt,
+                        'must be a non-empty String': aa.nonEmptyString,
+                        'must be an Integer': aa.isInt,
+                        'must be a Number': aa.isNumber,
+                        'must be a positive Integer': aa.isPositiveInt,
                     };
                     const text = testers.reduce((acc, func, key) => {
                         if (tester === func) {
@@ -385,7 +385,7 @@
             });
         },
         addScriptToDOM:             function (path) {
-            if (path && nonEmptyString(path)) {
+            if (path && aa.nonEmptyString(path)) {
                 path = path.trim();
                 const script = document.createElement("script");
                 script.setAttribute("charset", "utf-8");
@@ -394,7 +394,7 @@
             }
         },
         addStyleToScript:           function (scriptFilename, styleFilename) {
-            const path = findPathOf(scriptFilename);
+            const path = aa.findPathOf(scriptFilename);
             if (path) {
                 var css = document.createElement("link");
                 css.rel  = "stylesheet";
@@ -452,7 +452,7 @@
         },
         debug:                      function (){
 
-            alert('debug');
+            alert('aa.debug');
         },
         deprecated:                 function (name) {
             /**
@@ -460,16 +460,16 @@
              *
              * @return void
              */
-            if (!nonEmptyString(name)) { throw new TypeError("Argument must be a non-empty String."); }
+            if (!aa.nonEmptyString(name)) { throw new TypeError("Argument must be a non-empty String."); }
             console.warn("Deprecated: '"+name.trim()+"'. This feature is no longer recommended. Avoid using it, and update existing code if possible.");
         },
         digit:                      function (param,digits) {
             var i;
-            if (!isInt(digits) || !isInt(digits)) {
+            if (!aa.isInt(digits) || !aa.isInt(digits)) {
                 return param;
             }
             param += '';
-            for(i=param.length; i<digits; i++) {
+            for(i=param.length; i<aa.digits; i++) {
                 param = '0'+param;
             }
             return param;
@@ -508,13 +508,13 @@
              *
              * #return {DOM element}
              */
-            const resolve = (arguments && arguments.length>1 && isFunction(arguments[1]) ? arguments[1] : undefined);
-            const reject = (arguments && arguments.length>2 && isFunction(arguments[2]) ? arguments[2] : undefined);
-            const thisArg = (arguments.length > 1 && !isFunction(arguments[1]) ?
+            const resolve = (arguments && arguments.length>1 && aa.isFunction(arguments[1]) ? arguments[1] : undefined);
+            const reject = (arguments && arguments.length>2 && aa.isFunction(arguments[2]) ? arguments[2] : undefined);
+            const thisArg = (arguments.length > 1 && !aa.isFunction(arguments[1]) ?
                 arguments[1]
-                : (arguments.length > 2 && !isFunction(arguments[2]) ?
+                : (arguments.length > 2 && !aa.isFunction(arguments[2]) ?
                     arguments[2]
-                    : (arguments.length > 3 && !isFunction(arguments[3]) ?
+                    : (arguments.length > 3 && !aa.isFunction(arguments[3]) ?
                         arguments[3]
                         : undefined
                     )
@@ -544,7 +544,7 @@
             const folder = document
                 .getElementsByTagName("script")
                 .reduce(function (folder, script) {
-                    if (script && isObject(script) && script.src) {
+                    if (script && aa.isObject(script) && script.src) {
                         const re = new RegExp('^(.+)'+filename+'$','');
                         const result = script.src.match(re);
                         if (result && result.length>=2) {
@@ -588,7 +588,7 @@
             var res = undefined;
             var scripts = document.getElementsByTagName('script');
             scripts.forEach(function (script) {
-                if (script && isObject(script) && script.src) {
+                if (script && aa.isObject(script) && script.src) {
                     var re = new RegExp('^(.+)'+file+'$','');
                     var result = script.src.match(re);
                     if (result && result.length>=2) {
@@ -602,7 +602,7 @@
             var res = undefined;
             var links = document.getElementsByTagName('link');
             links.forEach(function (link) {
-                if (link && isObject(link) && link.href) {
+                if (link && aa.isObject(link) && link.href) {
                     var re = new RegExp('^(.+)'+file+'$','');
                     var result = link.href.match(re);
                     if (result && result.length>=2) {
@@ -632,18 +632,18 @@
         },
         inbetween:                  function (value, min, max){
             return (
-                isNumber(value)
-                && isNumber(min)
-                && isNumber(max)
+                aa.isNumber(value)
+                && aa.isNumber(min)
+                && aa.isNumber(max)
                 && value >= min && value <= max
             );
         },
         inbetweenStrict:            function (value, min, max){
 
             return (
-                isNumber(value)
-                && isNumber(min)
-                && isNumber(max)
+                aa.isNumber(value)
+                && aa.isNumber(min)
+                && aa.isNumber(max)
                 && value > min && value < max
             );
         },
@@ -766,7 +766,7 @@
                 }
                 return false;
 
-                // if (isNode(insertNode)) {
+                // if (aa.isNode(insertNode)) {
                 //     doc.execCommand('insertHTML',false,insertNode.outerHTML+' ');
                 // } else if (aa.isString(insertNode)) {
                 //     doc.execCommand('insertHTML',false,insertNode);
@@ -910,15 +910,15 @@
         },
         isArrayOfFunctions:         function (a){
 
-            return (isArray(a) && a.reduce((ok, v)=>{ return (!isFunction(v) ? false : ok); }, true));
+            return (aa.isArray(a) && a.reduce((ok, v)=>{ return (!aa.isFunction(v) ? false : ok); }, true));
         },
         isArrayOfNumbers:           function (a){
 
-            return (isArray(a) && a.every(v => isNumber(v)));
+            return (aa.isArray(a) && a.every(v => aa.isNumber(v)));
         },
         isArrayOfStrings:           function (a){
             
-            return (isArray(a) && a.reduce((ok, v)=>{ return (!aa.isString(v) ? false : ok); }, true));
+            return (aa.isArray(a) && a.reduce((ok, v)=>{ return (!aa.isString(v) ? false : ok); }, true));
         },
         isNullOrNonEmptyString:     v => (v === null || aa.nonEmptyString(v)),
         isObjectOf:                 function (callback) {
@@ -928,15 +928,15 @@
         },
         isObjectOfFunctions:        function (o){
             return (
-                isObject(o)
-                && o.reduce((ok, v)=>{ return (!isFunction(v) ? false : ok); }, true)
+                aa.isObject(o)
+                && o.reduce((ok, v)=>{ return (!aa.isFunction(v) ? false : ok); }, true)
             );
         },
         isObjectOfObjects:          function (param) {
             let ok = true;
-            if (isObject(param)) {
+            if (aa.isObject(param)) {
                 ok = param.reduce((acc,data,key)=>{
-                    if (!isObject(data)) {
+                    if (!aa.isObject(data)) {
                         acc = false;
                     }
                     return acc;
@@ -944,10 +944,10 @@
             }
             return ok;
         },
-        isPositiveInt:              v => (isInt(v) && v >= 0),
-        isPositiveNumber:           v => (isNumber(v) && v >= 0),
-        isStrictlyPositiveInt:      v => (isInt(v) && v > 0),
-        isStrictlyPositiveNumber:   v => (isNumber(v) && v > 0),
+        isPositiveInt:              v => (aa.isInt(v) && v >= 0),
+        isPositiveNumber:           v => (aa.isNumber(v) && v >= 0),
+        isStrictlyPositiveInt:      v => (aa.isInt(v) && v > 0),
+        isStrictlyPositiveNumber:   v => (aa.isNumber(v) && v > 0),
         isRegExp:                   function (param){
             return (
                 typeof param === "object"
@@ -969,7 +969,7 @@
             );
         },
         purgeEventHandlers:         function (node) {
-            walkTheDOM(node, function (elt) {
+            aa.walkTheDOM(node, function (elt) {
                 for (let key in elt) {
                     if (typeof elt[key] === "function") {
                         elt[key] = null;
@@ -1010,8 +1010,8 @@
             if (a === b) {
                 return 0;
             } else {
-                a = isNumber(a) ? a.toString() : a;
-                b = isNumber(b) ? b.toString() : b;
+                a = aa.isNumber(a) ? a.toString() : a;
+                b = aa.isNumber(b) ? b.toString() : b;
 
                 if (aa.isString(a) && aa.isString(b)) {
                     a = a.toLowerCase().noAccent();
@@ -1028,7 +1028,7 @@
                     const len = aParts.length > bParts.length ? bParts.length : aParts.length;
 
                     // If first parts are from different types:
-                    if (!!aParts[0].match(digits) !== !!bParts[0].match(digits)) {
+                    if (!!aParts[0].match(aa.digits) !== !!bParts[0].match(aa.digits)) {
                         return (
                             a < b
                             ? -1
@@ -1043,7 +1043,7 @@
                             let _b = bParts[i];
 
                             if (_a !== _b) {
-                                if (_a.match(digits) && !!_a.match(digits) && !!_b.match(digits)) {
+                                if (_a.match(aa.digits) && !!_a.match(aa.digits) && !!_b.match(aa.digits)) {
                                     const hiraganas = ['０', '１', '２', '３', '４', '５', '６', '７', '８', '９'];
                                     hiraganas.forEach((kana, i)=>{
                                         _a = _a.replace(new RegExp(kana, "g"), i);
@@ -1092,7 +1092,7 @@
             }
             try{
                 const storage = window[type+"Storage"],
-                    x = "__testStorage__";
+                    x = "__aa.testStorage__";
                 storage.setItem(x,x);
                 storage.getItem(x);
                 return true;
@@ -1138,9 +1138,9 @@
             return window.btoa(unescape(encodeURIComponent(param)));
         },
         verifyObject:               function (spec /*, strict=false */) {
-            aa.arg.test(spec, isObject, `'spec'`);
-            const strict = arguments.length > 1 && isBool(arguments[1]) ? arguments[1] : false;
-            return arg => isObject(arg) && arg.verify(spec, strict);
+            aa.arg.test(spec, aa.isObject, `'spec'`);
+            const strict = arguments.length > 1 && aa.isBool(arguments[1]) ? arguments[1] : false;
+            return arg => aa.isObject(arg) && arg.verify(spec, strict);
         },
         walkTheDOM:                 function (node,func){
             /**
@@ -1149,7 +1149,7 @@
             func(node);
             node = node.firstChild;
             while(node){
-                walkTheDOM(node, func);
+                aa.walkTheDOM(node, func);
                 node = node.nextSibling;
             }
         },
@@ -1157,14 +1157,14 @@
             var o = {};
             var except = [];
             if (arguments && arguments.length > 2) {
-                if (arguments[2] !== null && !isArray(arguments[2]) && isObject(arguments[2])) {
+                if (arguments[2] !== null && !aa.isArray(arguments[2]) && aa.isObject(arguments[2])) {
                     o = arguments[2];
                 }
             }
             o.forEach(function (value,key) {
                 switch(key.toLowerCase()) {
                     case 'except':
-                        if (isArray(value)) {
+                        if (aa.isArray(value)) {
                             value.forEach(function (s) {
                                 if (aa.isString(s) && s.trim()) {
                                     except.push(s.trim().toLowerCase());
@@ -1179,7 +1179,7 @@
             
             node = node.firstChild;
             while(node) {
-                if (isElement(node) && !except.has(node.nodeName.toLowerCase())) {
+                if (aa.isElement(node) && !except.has(node.nodeName.toLowerCase())) {
                     func(node);
                 }
                 node = node.nextSibling;
@@ -1189,14 +1189,19 @@
             console.warn.apply(this, arguments);
         },
     };
-    aa.deploy(window, functions, {force: true});
+    aa.deploy(window, {
+        el: functions.el,
+        log: functions.log,
+        warn: functions.warn,
+    });
+    // aa.deploy(window, functions, {force: true});
     aa.deploy(aa, functions, {force: true});
     aa.deploy(aa, {
         defineAccessors:            function (accessors /*, spec */) {
             const spec = arguments && arguments.length > 1 ? arguments[1] : {};
 
-            aa.arg.test(accessors, isObject, `'accessors'`);
-            aa.arg.test(spec, isObject, `'spec'`);
+            aa.arg.test(accessors, aa.isObject, `'accessors'`);
+            aa.arg.test(spec, aa.isObject, `'spec'`);
 
             aa.verify.call(accessors, {
                 execute: aa.isObject,
@@ -2259,7 +2264,7 @@
                  * @return {any}
                  */
                 get: function (that, key) {
-                    aa.arg.test(key, nonEmptyString, `'key'`);
+                    aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
                     const results = privates.get(that, "data");
                     if (!results) {
@@ -2280,7 +2285,7 @@
                      * @return {any}
                      */
                     return function (key) {
-                        aa.arg.test(key, nonEmptyString, `'key'`);
+                        aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
                         const results = privates.get(that, "data");
                         if (!results) {
@@ -2298,7 +2303,7 @@
                  * @return {void}
                  */
                 set: function (that, key, value) {
-                    aa.arg.test(key, nonEmptyString, `'key'`);
+                    aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
                     let data = privates.get(that, "data");
                     if (!data) {
@@ -2321,7 +2326,7 @@
                      * @return {any}
                      */
                     return function (key, value) {
-                        aa.arg.test(key, nonEmptyString, `'key'`);
+                        aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
                         const data = privates.get(that, "data") || {};
                         data[key] = value;
@@ -2365,7 +2370,7 @@
             /**
              * Found at https://stackoverflow.com/a/8809472
              */
-            deprecated("aa.uuidv4");
+            aa.deprecated("aa.uuidv4");
             var dt = new Date().getTime();
             var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
                 var r = (dt + Math.random()*16)%16 | 0;
@@ -2383,8 +2388,8 @@
              *
              * @return {void}
              */
-            if (!isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
-            if (!isNumber(delay) || delay < 0) { throw new TypeError("Second argument must be an Integer greater than 0."); }
+            if (!aa.isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
+            if (!aa.isNumber(delay) || delay < 0) { throw new TypeError("Second argument must be an Integer greater than 0."); }
 
             let timer;
             return Object.freeze(function () {
@@ -2404,9 +2409,9 @@
              *
              * @return {void}
              */
-            if (!isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
-            if (!isObject(spec) && !isInt(spec)) { throw new TypeError("Second argument must be an Object or a positive Integer."); }
-            if (isInt(spec)) {
+            if (!aa.isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
+            if (!aa.isObject(spec) && !aa.isInt(spec)) { throw new TypeError("Second argument must be an Object or a positive Integer."); }
+            if (aa.isInt(spec)) {
                 spec = { delay: spec };
             }
             spec.sprinkle({
@@ -2415,9 +2420,9 @@
                 start: true
             });
             aa.arg.test(spec, aa.verifyObject({
-                delay: (n)=>{ return isInt(n) && n >= 0; },
-                end: isBool,
-                start: isBool
+                delay: (n)=>{ return aa.isInt(n) && n >= 0; },
+                end: aa.isBool,
+                start: aa.isBool
             }), `'spec'`);
 
             let timer;
@@ -2441,8 +2446,8 @@
             };
         },
         wait:       function (delay, callback) {
-            aa.arg.test(delay, isStrictlyPositiveInt, `'delay'`);
-            aa.arg.test(callback, isFunction, `'callback'`);
+            aa.arg.test(delay, aa.isStrictlyPositiveInt, `'delay'`);
+            aa.arg.test(callback, aa.isFunction, `'callback'`);
 
             window.setTimeout(callback, delay);
         },
@@ -2476,7 +2481,7 @@
              * @param {Boolean} s=false (strict)
              */
 
-            const strict = aa.arg.optional(arguments, 2, false, isBool);
+            const strict = aa.arg.optional(arguments, 2, false, aa.isBool);
             return (strict ?
                 (this > min && this < max)
                 : (this >= min && this <= max)
@@ -2496,7 +2501,7 @@
     // STRING functions:
     aa.deploy(String.prototype, {
         aaReplace:              function (regex,value) {
-            if (isObject(regex) && regex.constructor && regex.constructor.name === 'RegExp') {
+            if (aa.isObject(regex) && regex.constructor && regex.constructor.name === 'RegExp') {
                 var res = this.match(regex);
                 if (res) {
                     console.log(res);
@@ -2614,7 +2619,7 @@
              *
              * @return {string}
              */
-            if (!isInt(max)) { throw new TypeError("Argument must be an Integer."); }
+            if (!aa.isInt(max)) { throw new TypeError("Argument must be an Integer."); }
 
             const src = this.toString();
             const sep = "...";
@@ -2662,12 +2667,12 @@
             var that = this.toString();
             var str = ' ';
             
-            if (isInt(pad) && pad >= 0) {
+            if (aa.isInt(pad) && pad >= 0) {
             } else {
                 throw new TypeError('First argument must a number.');
             }
             if (arguments && arguments.length > 1) {
-                if (isNumber(arguments[1]) || (aa.isString(arguments[1]) && arguments[1].trim())) {
+                if (aa.isNumber(arguments[1]) || (aa.isString(arguments[1]) && arguments[1].trim())) {
                     str = ''+arguments[1];
                 } else {
                     throw new TypeError('Invalid second argument.');
@@ -2685,12 +2690,12 @@
             var that = this.toString();
             var str = ' ';
             
-            if (isInt(pad) && pad >= 0) {
+            if (aa.isInt(pad) && pad >= 0) {
             } else {
                 throw new TypeError('First argument must a number.');
             }
             if (arguments && arguments.length > 1) {
-                if (isNumber(arguments[1]) || (aa.isString(arguments[1]) && arguments[1].trim())) {
+                if (aa.isNumber(arguments[1]) || (aa.isString(arguments[1]) && arguments[1].trim())) {
                     str = ''+arguments[1];
                 } else {
                     throw new TypeError('Invalid second argument.');
@@ -2715,7 +2720,7 @@
         },
         // ----------------------------------------------------------------
         filter: function (callback /*, thisArg */) {
-            if (!isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
+            if (!aa.isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
             const thisArg = (arguments && arguments.length > 1 ? arguments[1] : this);
             let i;
             let str = '';
@@ -2728,7 +2733,7 @@
             return str;
         },
         find: function (callback /*, thisArg */) {
-            if (!isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
+            if (!aa.isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
             const thisArg = (arguments && arguments.length > 1 ? arguments[1] : this);
             let i;
 
@@ -2827,12 +2832,12 @@
             
             // Warning: returns false if given parameter is an object with indexes in a different order!
 
-            if (isObject(p)) {
+            if (aa.isObject(p)) {
                 var found = this.find(function (v) {
                     return (JSON.stringify(v) === JSON.stringify(p) && v.constructor === p.constructor);
                 },this);
                 return found ? true : false;
-            } else if (isFunction(p)) {
+            } else if (aa.isFunction(p)) {
                 var found = this.find(function (v) {
                     return (v.toString() === p.toString());
                 },this);
@@ -2849,13 +2854,13 @@
             return (typeof this[param] !== 'undefined' && aa.isString(this[param]));
         },
         hasKeyInt:      function (param){
-            return (typeof this[param] !== 'undefined' && isInt(this[param]));
+            return (typeof this[param] !== 'undefined' && aa.isInt(this[param]));
         },
         hasKeyArray:    function (param){
-            return (typeof this[param] !== 'undefined' && isArray(this[param]));
+            return (typeof this[param] !== 'undefined' && aa.isArray(this[param]));
         },
         hasKeyObject:   function (param){
-            return (typeof this[param] !== 'undefined' && isObject(this[param]));
+            return (typeof this[param] !== 'undefined' && aa.isObject(this[param]));
         },
         pushUnique: function (item) {
             if (this.indexOf(item) < 0) {
@@ -2919,7 +2924,7 @@
             }
         },
         sortNatural:    function (){
-            this.sort(sortNatural);
+            this.sort(aa.sortNatural);
             return this;
         },
         remove:         function (item /*, removeAll=false */) {
@@ -2931,7 +2936,7 @@
              *
              * @return {any|undefined}
              */
-            const removeAll = aa.arg.optional(arguments, 1, false, isBool);
+            const removeAll = aa.arg.optional(arguments, 1, false, aa.isBool);
 
             let i;
             if (removeAll) {
@@ -2957,11 +2962,12 @@
             return undefined;
         },
         verify:         function (callback){
-            if (!isFunction(callback)) { throw new TypeError("Argument must be a Function."); }
+            if (!aa.isFunction(callback)) { throw new TypeError("Argument must be a Function."); }
 
             return (this.filter((item)=>{
                 return !callback(item);
             }).length !== 0);
+            // return this.every(callback);
         },
 
         // from MDN:
@@ -3309,7 +3315,7 @@
         // ----------------------------------------------------------------
         // Object functions:
         cancel:             function (eventName, callback) {
-            var bubble = (arguments && arguments.length > 2 && isBool(arguments[2]) ? arguments[2] : false);
+            var bubble = (arguments && arguments.length > 2 && aa.isBool(arguments[2]) ? arguments[2] : false);
 
             if (!aa.isString(eventName) || !eventName.trim()) {
                 throw TypeError("Event name is not a valid string.");
@@ -3332,11 +3338,11 @@
                 || aa.isString(this)
             ) {
                 o = this;
-            } else if (isArray(this)) {
+            } else if (aa.isArray(this)) {
                 o = this.concat([]);
-            } else if (isRegExp(this)) {
+            } else if (aa.isRegExp(this)) {
                 o = this;
-            } else if (isObject(this)) {
+            } else if (aa.isObject(this)) {
                 o = {};
                 this.forEach(function (v,k) {
                     o[k] = v;
@@ -3501,14 +3507,14 @@
         },
         hasKeyInt:          function (param){
 
-            return (this[param] !== undefined && isInt(this[param]));
+            return (this[param] !== undefined && aa.isInt(this[param]));
         },
         hasKeyArray:        function (param){
 
-            return (this[param] !== undefined && isArray(this[param]));
+            return (this[param] !== undefined && aa.isArray(this[param]));
         },
         hasKeyObject:       function (param){
-            return (this[param] !== undefined && isObject(this[param]));
+            return (this[param] !== undefined && aa.isObject(this[param]));
         },
         indexOf:            function (p) {
             
@@ -3595,7 +3601,7 @@
              */
             var bubble = (arguments && arguments.length>2 && arguments[2] === true);
 
-            if (isObject(eventName)) {
+            if (aa.isObject(eventName)) {
                 eventName.forEach((callback, eventName) => {
                     this.on(eventName, callback);
                 });
@@ -3605,7 +3611,7 @@
             if (!aa.isString(eventName) || !eventName.trim()) {
                 throw TypeError("Event name is not a valid string.");
             }
-            if (!isFunction(callback) && !isObject(callback)) {
+            if (!aa.isFunction(callback) && !aa.isObject(callback)) {
                 throw TypeError("Callback must be a function.");
             }
             if (this.addEventListener) {
@@ -3660,26 +3666,26 @@
              * @return {void}
              */
 
-            aa.arg.test(seasoning, isObject);
-            const options = aa.arg.optional(arguments, 1, {}, options => isObject(options) && options.verify({
-                forceType: isBool
+            aa.arg.test(seasoning, aa.isObject);
+            const options = aa.arg.optional(arguments, 1, {}, options => aa.isObject(options) && options.verify({
+                forceType: aa.isBool
             }));
 
             seasoning.forEach((value, key) => {
                 if (!this.hasOwnProperty(key)) {
                     this[key] = value;
-                } else if (isObject(this[key]) && isObject(value)) {
+                } else if (aa.isObject(this[key]) && aa.isObject(value)) {
                     this[key].sprinkle(value, options);
                 } else if (this.hasOwnProperty(key)) {
                     if (options.forceType) {
                         [
                             // arg => arg === null,
                             // arg => arg === undefined,
-                            isArray,
-                            isBool,
-                            isNumber,
-                            isObject,
-                            // isRegExp,
+                            aa.isArray,
+                            aa.isBool,
+                            aa.isNumber,
+                            aa.isObject,
+                            // aa.isRegExp,
                             aa.isString
                         ].forEach(func => {
                             if (func(this[key]) !== func(value)) {
@@ -3713,7 +3719,7 @@
              *
              * @return {boolean}
              */
-            const strict = aa.arg.optional(arguments, 1, false, isBool);
+            const strict = aa.arg.optional(arguments, 1, false, aa.isBool);
             if (strict) {
                 const found = dict.reduce((acc, v, k) => {
                     if (!this.hasOwnProperty(k)) {
@@ -3725,7 +3731,7 @@
                     cease(`Object must have ${found.length == 1 ? 'a ' : ''}'${found.join("', '")}' key${found.length > 1 ? 's' : ''}.`);
                 }
             }
-            aa.arg.test(dict, dict.every((v, k) => isFunction(v)), 0, "must be an Object of Functions only");
+            aa.arg.test(dict, dict.every((v, k) => aa.isFunction(v)), 0, "must be an Object of Functions only");
 
             const err = this.reduce((err, v, k)=>{
                 if (!dict.hasOwnProperty(k) || !dict[k](v)) {
@@ -3766,7 +3772,7 @@
              *  Author: based on Douglas Crockford
              */
             var that = Object(this);
-            if (isDom(that)) {
+            if (aa.isDom(that)) {
                 func(that);
                 that = that.firstChild;
                 while(that) {
@@ -3782,7 +3788,7 @@
              *  Author: based on Douglas Crockford
              */
             var that = Object(this);
-            if (isNode(that)) {
+            if (aa.isNode(that)) {
                 func(that);
                 if (that.nodeType !== 3) {
                     that = that.firstChild;
@@ -3799,7 +3805,7 @@
             /**
              * parentNode.insertAtFirst(newNode);
              */
-            if (isDom(this) && isElement(newNode)) {
+            if (aa.isDom(this) && aa.isElement(newNode)) {
                 if (this.childNodes.length) {
                     this.insertBefore(newNode,this.childNodes[0]);
                 } else {
@@ -3809,9 +3815,9 @@
         },
         insertAfter:        function (newNode) {
             /**
-             * thisNode.insertAfter(newNode);
+             * thaa.isNode.insertAfter(newNode);
              */
-            if (isDom(this)) {
+            if (aa.isDom(this)) {
                 if (this.nextSibling === null) {
                     this.parentNode.appendChild(newNode);
                 } else {
@@ -3820,7 +3826,7 @@
             }
         },
         removeChildren:     function () {
-            if (isDom(this)) {
+            if (aa.isDom(this)) {
                 while(this.hasChildNodes()) {
                     this.removeChild(this.firstChild);
                 }
@@ -3830,9 +3836,9 @@
         },
         removeNode:         function () {
             /**
-             * thisNode.removeNode();
+             * thaa.isNode.removeNode();
              */
-            if (isDom(this) && this.parentNode) {
+            if (aa.isDom(this) && this.parentNode) {
                 let o = {reference: this.parentNode.removeChild(this)};
                 delete o.reference;
             }
@@ -3844,7 +3850,7 @@
         riseTheDOM:         function (func) {
             var res;
             var that = Object(this);
-            if (that && isNode(that)) {
+            if (that && aa.isNode(that)) {
                 if (that.nodeType === 3) {
                     res = func(that);
                     if (res !== true) {
@@ -3873,7 +3879,7 @@
             /**
              * @param 
              */
-            if (!isArrayOfStrings(keys)) { throw new TypeError("Argument must be an Array."); }
+            if (!aa.isArrayOfStrings(keys)) { throw new TypeError("Argument must be an Array."); }
 
 
             return this.filter((v, k)=>{ return !keys.has(k); });
@@ -3897,8 +3903,8 @@
             const ctx = canvas.getContext("2d");
             const quality = (
                 arguments && arguments.length>1
-                && isNumber(arguments[1])
-                && inbetween(arguments[1], 0, 1)
+                && aa.isNumber(arguments[1])
+                && aa.inbetween(arguments[1], 0, 1)
                 
                 ? arguments[1]
                 : undefined
@@ -3927,18 +3933,18 @@
              * return {image}
              */
             // ----------------------------------------------------------------
-            const resolve = (arguments && arguments.length>1 && isFunction(arguments[1]) ? arguments[1] : undefined);
-            const reject = (arguments && arguments.length>2 && isFunction(arguments[2]) ? arguments[2] : undefined);
+            const resolve = (arguments && arguments.length>1 && aa.isFunction(arguments[1]) ? arguments[1] : undefined);
+            const reject = (arguments && arguments.length>2 && aa.isFunction(arguments[2]) ? arguments[2] : undefined);
             // ----------------------------------------------------------------
             // Compliance:
-            if (!isObject(spec)) { throw new TypeError("First argument must be an Object."); }
+            if (!aa.isObject(spec)) { throw new TypeError("First argument must be an Object."); }
             if (!spec.verify({
-                width: isStrictlyPositiveInt,
-                height: isStrictlyPositiveInt,
-                maxHeight: isStrictlyPositiveInt,
-                maxWidth: isStrictlyPositiveInt,
-                minHeight: isStrictlyPositiveInt,
-                minWidth: isStrictlyPositiveInt
+                width: aa.isStrictlyPositiveInt,
+                height: aa.isStrictlyPositiveInt,
+                maxHeight: aa.isStrictlyPositiveInt,
+                maxWidth: aa.isStrictlyPositiveInt,
+                minHeight: aa.isStrictlyPositiveInt,
+                minWidth: aa.isStrictlyPositiveInt
             })) { throw new TypeError("Given Object is not compliant."); }
             if (spec.minWidth && spec.maxWidth && spec.minWidth > spec.maxWidth) { throw new TypeError("Conflict between 'minWidth' and 'maxWidth'."); }
             if (spec.minHeight && spec.maxHeight && spec.minHeight > spec.maxHeight) { throw new TypeError("Conflict between 'minHeight' and 'maxHeight'."); }
@@ -4040,9 +4046,9 @@
                 ["minWidth", ()=>{}]
             ];
 
-            if (!isObject(options)) { throw new TypeError("First argument must be an Object."); }
-            if (resolve && !isFunction(resolve)) { throw new TypeError("Second argument must be a Function."); }
-            if (reject && !isFunction(reject)) { throw new TypeError("Third argument must be a Function."); }
+            if (!aa.isObject(options)) { throw new TypeError("First argument must be an Object."); }
+            if (resolve && !aa.isFunction(resolve)) { throw new TypeError("Second argument must be a Function."); }
+            if (reject && !aa.isFunction(reject)) { throw new TypeError("Third argument must be a Function."); }
             // Todo: verify keys of options...
 
             const file = options.file;
@@ -4131,8 +4137,8 @@
             const resolve = (arguments && arguments.length>0 ? arguments[0] : undefined);
             const reject = (arguments && arguments.length>1 ? arguments[1] : undefined);
 
-            if (resolve && !isFunction(resolve)) { throw new TypeError("First argument must be a Function."); }
-            if (reject && !isFunction(reject)) { throw new TypeError("Second argument must be a Function."); }
+            if (resolve && !aa.isFunction(resolve)) { throw new TypeError("First argument must be a Function."); }
+            if (reject && !aa.isFunction(reject)) { throw new TypeError("Second argument must be a Function."); }
 
             const r = new FileReader();
             r.onload = function (e) {
@@ -4163,8 +4169,8 @@
             const resolve = (arguments && arguments.length>0 ? arguments[0] : undefined);
             const reject = (arguments && arguments.length>1 ? arguments[1] : undefined);
 
-            if (resolve !== undefined && !isFunction(resolve)) { throw new TypeError("First argument must be a Function."); }
-            if (reject !== undefined && !isFunction(reject)) { throw new TypeError("Second argument must be a Function."); }
+            if (resolve !== undefined && !aa.isFunction(resolve)) { throw new TypeError("First argument must be a Function."); }
+            if (reject !== undefined && !aa.isFunction(reject)) { throw new TypeError("Second argument must be a Function."); }
 
             const img = new Image();
 
@@ -4216,7 +4222,7 @@
              *
              * @return {void}
              */
-            if (isObject(o)) {
+            if (aa.isObject(o)) {
                 o.forEach((v,k)=>{
                     const prefix = "set";
                     const method = prefix+k.firstToUpper();
@@ -4264,7 +4270,7 @@
              *
              * return {Object}
              */
-            const message = (arguments && arguments.length > 1 && nonEmptyString(arguments[1]) ? arguments[1] : undefined);
+            const message = (arguments && arguments.length > 1 && aa.nonEmptyString(arguments[1]) ? arguments[1] : undefined);
 
             if (message) {
                 o.message = message;
@@ -4307,13 +4313,13 @@
 
                 // Public methods:
                 Version.prototype.hydrate   = function () {
-                    if (arguments && arguments.length && isObject(arguments[0])) {
+                    if (arguments && arguments.length && aa.isObject(arguments[0])) {
                         arguments[0].forEach(function (v,k) {
                             if (this.__self.hasOwnProperty(k)) {
                                 if (typeof v === typeof this.__self[k]) {
                                     if (aa.isString(v)) {
                                         this.__self[k] = v;
-                                    } else if (isArray(v)) {
+                                    } else if (aa.isArray(v)) {
                                         v.forEach(function (txt,j) {
                                             if (aa.isString(txt)) {
                                                 this.__self[k].push(txt);
@@ -4322,9 +4328,9 @@
                                                 console.warn("Given '"+k+"' argument should be an Array of Strings.");
                                             }
                                         },this);
-                                    } else if (isObject(v)) {
+                                    } else if (aa.isObject(v)) {
                                         v.forEach(function (version,lib) {
-                                            if (nonEmptyString(version)) {
+                                            if (aa.nonEmptyString(version)) {
                                                 this.__self[k][lib] = version.trim();
                                             }
                                         },this);
@@ -4371,7 +4377,7 @@
                      * @param {Function} callback=null (Function to be called if wrong version)
                      * @param {this} that=undefined
                      */
-                    const callback = (arguments && arguments.length > 2 && isFunction(arguments[2]) ? arguments[2] : null);
+                    const callback = (arguments && arguments.length > 2 && aa.isFunction(arguments[2]) ? arguments[2] : null);
                     const that = (arguments && arguments.length > 3 ? arguments[3] : undefined);
 
                     let ok          = true;
@@ -4379,10 +4385,10 @@
                     let expectedNew = expected;
                     let o = {expected:expected, version:version};
                     let extract = function (v) {
-                        if (!nonEmptyString(v)) {
+                        if (!aa.nonEmptyString(v)) {
                             throw new TypeError("Given argument must be a non-empty String.");
                         }
-                        if (nonEmptyString(v)) {
+                        if (aa.nonEmptyString(v)) {
                             if (v.match(/^([0-9]+)\.([0-9]+)$/)) {
                                 v += '.0';
                             }
@@ -4409,7 +4415,7 @@
                     };
                     let numerify = function (o) {
 
-                        return isObject(o) ? (o.major*1000000)+(o.minor*1000)+(o.patch) : null;
+                        return aa.isObject(o) ? (o.major*1000000)+(o.minor*1000)+(o.patch) : null;
                     };
 
                     expected = expected.trim();
@@ -4500,7 +4506,7 @@
                     /**
                      * @param {Function} callback=null (Function to be called if error)
                      */
-                    const callback = (arguments && arguments.length > 0 && isFunction(arguments[0]) ? arguments[0] : null);
+                    const callback = (arguments && arguments.length > 0 && aa.isFunction(arguments[0]) ? arguments[0] : null);
 
                     let ok = true;
 
@@ -4564,16 +4570,16 @@
 
                 // Methods:
                 this.set                    = function (lib, o) {
-                    if (!nonEmptyString(lib)) {
+                    if (!aa.nonEmptyString(lib)) {
                         throw new TypeError("First argument should be a non-empty String.")
                     }
-                    if (isArray(o)) {
+                    if (aa.isArray(o)) {
                         o.forEachReverse(function (v) {
                             this.set(lib,v);
                         },this);
                         return;
                     }
-                    if (!isObject(o)) {
+                    if (!aa.isObject(o)) {
                         throw new TypeError("Second argument should be an Object or an Array of Objects.")
                     }
                     lib = lib.trim();
@@ -4587,7 +4593,7 @@
                     }
                 };
                 this.get_X                    = function (lib) {
-                    if (!nonEmptyString(lib)) {
+                    if (!aa.nonEmptyString(lib)) {
                         throw new TypeError("Argument should be a non-empty String.");
                     }
                     lib = lib.trim();
@@ -4610,15 +4616,15 @@
                 aaVersions.onbodyload();
             },
             test: function (spec /*, resolve, reject */) {
-                if (!isObject(spec)) { throw new TypeError("First argument must be an Object."); }
+                if (!aa.isObject(spec)) { throw new TypeError("First argument must be an Object."); }
                 let {name, version, dependencies} = spec;
 
-                if (!nonEmptyString(name)) { throw new TypeError("'name' key not found in first argument."); }
-                if (!nonEmptyString(version)) { throw new TypeError("'version' key not found in first argument."); }
-                if (!isObject(dependencies)) { throw new TypeError("'version' key not found in first argument."); }
+                if (!aa.nonEmptyString(name)) { throw new TypeError("'name' key not found in first argument."); }
+                if (!aa.nonEmptyString(version)) { throw new TypeError("'version' key not found in first argument."); }
+                if (!aa.isObject(dependencies)) { throw new TypeError("'version' key not found in first argument."); }
                 
-                const resolve = (arguments && arguments.length > 1 && isFunction(arguments[1]) ? arguments[1] : undefined);
-                const reject = (arguments && arguments.length > 2 && isFunction(arguments[2]) ? arguments[2] : undefined);
+                const resolve = (arguments && arguments.length > 1 && aa.isFunction(arguments[1]) ? arguments[1] : undefined);
+                const reject = (arguments && arguments.length > 2 && aa.isFunction(arguments[2]) ? arguments[2] : undefined);
                 
                 if (resolve) {
                     if (!__private.resolves.hasOwnProperty(name)) {
