@@ -51,6 +51,64 @@
             }
         }
     });
+    aa.deploy(window, {
+        el:                         function (id) {
+            /**
+             * How to call:
+             *      el(id)
+             *      el(id, this)
+             *      el(id, resolve() {})
+             *      el(id, resolve() {}, this)
+             *      el(id, resolve() {}, reject() {})
+             *      el(id, resolve() {}, reject() {}, this)
+             *
+             * @param {string} id
+             * @param {function} resolve (optional)
+             * @param {function} reject (optional)
+             * @param {object} that (optional)
+             *
+             * #return {DOM element}
+             */
+            const resolve = (arguments && arguments.length>1 && aa.isFunction(arguments[1]) ? arguments[1] : undefined);
+            const reject = (arguments && arguments.length>2 && aa.isFunction(arguments[2]) ? arguments[2] : undefined);
+            const thisArg = (arguments.length > 1 && !aa.isFunction(arguments[1]) ?
+                arguments[1]
+                : (arguments.length > 2 && !aa.isFunction(arguments[2]) ?
+                    arguments[2]
+                    : (arguments.length > 3 && !aa.isFunction(arguments[3]) ?
+                        arguments[3]
+                        : undefined
+                    )
+                )
+            );
+
+            if (document.getElementById) {
+                let node = document.getElementById(id);
+                if (!node && reject) {
+                        reject.call(thisArg, "DOM element not found.", "warning");
+                }
+                node = document.getElementById(id);
+                if (node) {
+                    if (resolve) {
+                        resolve.call(thisArg, node);
+                    }
+                    return node;
+                }
+                return undefined;
+            }
+            if (reject) {
+                reject.call(thisArg, "DOM element not found.", "warning");
+            }
+            return undefined;
+        },
+        log:                        function (){
+            console.log.apply(this, arguments);
+        },
+        warn:                       function (){
+            console.warn.apply(this, arguments);
+        },
+    });
+    // ----------------------------------------------------------------
     aa.deploy(aa, {
         geometry: Object.freeze({
             affine: {
@@ -376,9 +434,7 @@
             }
         })
     }, {force: true});
-    // ----------------------------------------------------------------
-    // Mixed functions:
-    const functions = {
+    aa.deploy(aa, {
         addHTML:                    function (identifiant, html) {
             el(identifiant, node => {
                 node.innerHTML += html;
@@ -490,55 +546,6 @@
             }
             console.log(undefined);
             return false;
-        },
-        el:                         function (id) {
-            /**
-             * How to call:
-             *      el(id)
-             *      el(id, this)
-             *      el(id, resolve() {})
-             *      el(id, resolve() {}, this)
-             *      el(id, resolve() {}, reject() {})
-             *      el(id, resolve() {}, reject() {}, this)
-             *
-             * @param {string} id
-             * @param {function} resolve (optional)
-             * @param {function} reject (optional)
-             * @param {object} that (optional)
-             *
-             * #return {DOM element}
-             */
-            const resolve = (arguments && arguments.length>1 && aa.isFunction(arguments[1]) ? arguments[1] : undefined);
-            const reject = (arguments && arguments.length>2 && aa.isFunction(arguments[2]) ? arguments[2] : undefined);
-            const thisArg = (arguments.length > 1 && !aa.isFunction(arguments[1]) ?
-                arguments[1]
-                : (arguments.length > 2 && !aa.isFunction(arguments[2]) ?
-                    arguments[2]
-                    : (arguments.length > 3 && !aa.isFunction(arguments[3]) ?
-                        arguments[3]
-                        : undefined
-                    )
-                )
-            );
-
-            if (document.getElementById) {
-                let node = document.getElementById(id);
-                if (!node && reject) {
-                        reject.call(thisArg, "DOM element not found.", "warning");
-                }
-                node = document.getElementById(id);
-                if (node) {
-                    if (resolve) {
-                        resolve.call(thisArg, node);
-                    }
-                    return node;
-                }
-                return undefined;
-            }
-            if (reject) {
-                reject.call(thisArg, "DOM element not found.", "warning");
-            }
-            return undefined;
         },
         findPathOf:                 function (filename) {
             const folder = document
@@ -959,9 +966,6 @@
                 typeof(value) === 'string'
             );
         },
-        log:                        function (){
-            console.log.apply(this, arguments);
-        },
         nonEmptyString:             function (str) {
             return (
                 aa.isString(str)
@@ -1185,17 +1189,7 @@
                 node = node.nextSibling;
             }
         },
-        warn:                       function (){
-            console.warn.apply(this, arguments);
-        },
-    };
-    aa.deploy(window, {
-        el: functions.el,
-        log: functions.log,
-        warn: functions.warn,
-    });
-    // aa.deploy(window, functions, {force: true});
-    aa.deploy(aa, functions, {force: true});
+    }, {force: true});
     aa.deploy(aa, {
         defineAccessors:            function (accessors /*, spec */) {
             const spec = arguments && arguments.length > 1 ? arguments[1] : {};
