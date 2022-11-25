@@ -1,5 +1,5 @@
 "use strict"; // é
-(function () {
+(() => {
     // ----------------------------------------------------------------
     if (window.aa !== undefined) { throw new Error("'aaJS' should be called before every other 'aa' modules."); }
     // ----------------------------------------------------------------
@@ -16,6 +16,34 @@
     const cease = (message) => {
         console.warn(message);
         return undefined;
+    };
+    const JS = {
+        accessors: {
+            id: null,
+            getKeys:    function (spec={}) {
+                aa.arg.test(spec, aa.verifyObject({
+                    get: aa.isFunction,
+                    set: aa.isFunction,
+                }), `'spec'`);
+                spec.sprinkle({get, set});
+
+                const keys = spec.get(this, `accessors-${JS.accessors.id}`);
+
+                return keys ? keys.slice() : [];
+            },
+            saveKey:    function (key, spec={}) {
+                aa.arg.test(spec, aa.verifyObject({
+                    get: aa.isFunction,
+                    set: aa.isFunction,
+                }), `'spec'`);
+                spec.sprinkle({get, set});
+
+                if (!spec.get(this, `accessors-${JS.accessors.id}`)) {
+                    spec.set(this, `accessors-${JS.accessors.id}`, []);
+                }
+                spec.get(this, `accessors-${JS.accessors.id}`).pushUnique(key);
+            }
+        }
     };
     // ----------------------------------------------------------------
     aa.deploy = Object.freeze(function (context, collection /*, spec */) {
@@ -1192,73 +1220,84 @@
     }, {force: true});
     aa.deploy(aa, {
         defineAccessors:            function (accessors /*, spec */) {
-            const spec = arguments && arguments.length > 1 ? arguments[1] : {};
-
-            aa.arg.test(accessors, aa.isObject, `'accessors'`);
-            aa.arg.test(spec, aa.isObject, `'spec'`);
-
-            aa.verify.call(accessors, {
-                execute: aa.isObject,
-                privates: aa.isObject,
-                publics: aa.isObject,
-                read: aa.isObject,
-                write: aa.isObject
-            });
-            aa.verify.call(spec, {
+            aa.arg.test(accessors, aa.verifyObject({
+                execute:    aa.isObject,
+                privates:   aa.isObject,
+                publics:    aa.isObject,
+                read:       aa.isObject,
+                write:      aa.isObject
+            }), `'accessors'`);
+            const spec = aa.arg.optional(arguments, 1, {}, aa.verifyObject({
                 getter: aa.isFunction,
                 setter: aa.isFunction,
+            }));
+            spec.sprinkle({
+                getter: get,
+                setter: set
             });
-
-            const getter = spec.getter || get;
-            const setter = spec.setter || set;
 
             accessors.forEach((keyValues, accessor) => {
                 keyValues.forEach((value, key) => {
-                    const thisSetter = 'set'+key.firstToUpper();
-                    setter(this, key, value);
+                    // Save key:
+                    JS.accessors.saveKey.call(this, key, {get: spec.getter, set: spec.setter});
+
+                    // Initialize value:
+                    spec.setter(this, key, value);
+                    
+                    // Initialize getters and setters:
+                    const getter = () => {
+                        return spec.getter(this, key);
+                    };
+                    const setter = value => {
+                        const setterName = 'set'+key.firstToUpper();
+                        if (typeof this[setterName] === 'function') {
+                            this[setterName].call(this, value);
+                        } else {
+                            console.warn("Setter '"+key+"' not implemented.");
+                        }
+                    };
                     switch (accessor) {
                         case 'publics':
                             Object.defineProperty(this, key, {
-                                get: () => {
-                                    return getter(this, key);
-                                },
-                                set: (value) => {
-                                    if (typeof this[thisSetter] === 'function') {
-                                        this[thisSetter].call(this, value);
-                                    } else {
-                                        console.warn("Setter '"+key+"' not implemented.");
-                                    }
-                                }
+                                get: getter,
+                                set: setter
                             });
                             break;
                         case 'read':
                             Object.defineProperty(this, key, {
-                                get: () => {
-                                    return getter(this, key);
-                                }
+                                get: getter
                             });
                             break;
                         case 'write':
                             Object.defineProperty(this, key, {
-                                set: (value) => {
-                                    if (typeof this[thisSetter] === 'function') {
-                                        this[thisSetter].call(this, value);
-                                    } else {
-                                        console.warn("Setter '"+key+"' not implemented.");
-                                    }
-                                }
+                                set: setter
                             });
                             break;
                         case 'execute':
                             Object.defineProperty(this, key, {
-                                get: () => {
-                                    return getter(this, key).call(this);
-                                }
+                                get: () => spec.getter(this, key).call(this)
                             });
                             break;
                     }
                 });
             });
+        },
+        getAccessor:                function (/* spec */) {
+            const spec = aa.arg.optional(arguments, 0, {}, aa.verifyObject({
+                get: aa.isFunction,
+                set: aa.isFunction
+            }));
+            spec.sprinkle({get, set});
+            
+            const that = {};
+            const keys = JS.accessors.getKeys.call(this, {get: spec.get, set: spec.set});
+            keys.forEach(key => {
+                Object.defineProperty(that, key, {
+                    get: () => spec.get(this, key),
+                    set: value => { spec.set(this, key, value); }
+                });
+            });
+            return Object.freeze(that);
         },
         getFilesFromDataTransfer:   function (dataTransfer) {
             const files = [];
@@ -2260,11 +2299,11 @@
                 get: function (that, key) {
                     aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
-                    const results = privates.get(that, "data");
-                    if (!results) {
+                    const data = privates.get(that, "data");
+                    if (!data) {
                         return undefined;
                     }
-                    return results[key];
+                    return data[key];
                 },
 
                 /**
@@ -2281,11 +2320,11 @@
                     return function (key) {
                         aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
-                        const results = privates.get(that, "data");
-                        if (!results) {
+                        const data = privates.get(that, "data");
+                        if (!data) {
                             return undefined;
                         }
-                        return results[key];
+                        return data[key];
                     };
                 },
 
@@ -4650,4 +4689,6 @@
         return Object.freeze(instance);
     })();
     // ----------------------------------------------------------------
+    JS.accessors.id = aa.uid();
+    const {get, set} = aa.mapFactory();
 })();
