@@ -3679,6 +3679,7 @@
         
             const keys = Object.keys(this);
             for (let i=0; i<keys.length; i++) {
+                const key = keys[i];
                 const isVerified = callback.call(that, this[key], key, this);
                 if (!aa.isBool(isVerified)) { throw new TypeError(`'callback' Function must return a Boolean.`); }
                 if (isVerified) {
