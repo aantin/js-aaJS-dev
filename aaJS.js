@@ -80,6 +80,138 @@
         }
     });
     aa.deploy(window, {
+        els: (function () {
+            function addToken (type, token, tokens) {
+                token = token.trim();
+                if (token.length) {
+                    tokens[type].push(token);
+                }
+            }
+            return function (selector) {
+                /**
+                 * Usage:
+                 *      el(selector1, selector2, selector3..., resolve() {});
+                 *      el(selector1, selector2, selector3..., null|undefined, reject() {});
+                 *      el(selector1, selector2, selector3..., resolve() {}, reject() {});
+                 *      el(selector1, selector2, selector3..., resolve() {}, reject() {}, thisArg);
+                 *      el(selector1, selector2..., resolve() {}, selector3..., reject() {}, thisArg);
+                 * 
+                 * This function takes as many arguments as needed.
+                 * Every selector must be a string formatted like 'tag#id.class1.class2...' or 'tag.class1.class2...#id'.
+                 * Every type is optional, but at least one type is required.
+                 * 
+                 * If given, the first functions will be considered as 'resolve' and 'reject' callbacks.
+                 * 
+                 * Once a a 'resolve' function is given, the last given argument will be considered as context for execution for both 'resolve' and 'reject'.
+                 * 
+                 * @param <string> selector1
+                 * @param <string> selector2
+                 * @param <string> selector3...
+                 * @param <function> resolve
+                 * @param <function> reject
+                 * @param <any> thisArg
+                 * 
+                 * @return <nodes[]>
+                 */
+                const functions = [];
+                const nodes     = [];
+                const results   = [];
+                let thisArg     = undefined;
+
+                Array.from(arguments)
+                .forEach((arg, i) => {
+                    if (aa.isString(arg)) {
+                        const classes   = [];
+                        const tokens    = {
+                            classes:    [],
+                            ids:        [], // must not contain more than one item
+                            tags:       []  // must not contain more than one item
+                        };
+
+                        let type = 'tags';
+                        let currToken = '';
+                        
+                        arg = arg.trim();
+                        arg.forEach(char => {
+                            switch (char) {
+                            case '#': (() => {
+                                addToken(type, currToken, tokens);
+                                type = 'ids';
+                                currToken = ''
+                            })(); break;
+                            case '.': (() => {
+                                addToken(type, currToken, tokens);
+                                type = 'classes';
+                                currToken = ''
+                            })(); break;
+                            default: (() => {
+                                currToken += char;
+                            })(); break;
+                            }
+                        });
+                        addToken(type, currToken, tokens);
+                        
+                        aa.throwErrorIf( tokens.ids.length > 1, "Selector must not have more than one ID." );
+                        aa.throwErrorIf( tokens.tags.length > 1, "Selector must not have more than one tag name." );
+
+                        if (tokens.ids.length > 0) {
+                            const node = document.getElementById(tokens.ids.first);
+                            if (node && (tokens.classes.length > 0 ? (tokens.classes.every(cls => node.classList.contains(cls))) : true)) {
+                                results.push(node);
+                            } else {
+                                results.push(null);
+                            }
+                        } else if (tokens.tags.length > 0) {
+                            const nodes = [];
+                            Array.from(document.getElementsByTagName(tokens.tags.first))
+                            .forEach(node => {
+                                if ((tokens.ids.first ? (tokens.ids.first && node.id && node.id === tokens.ids.first) : true)
+                                    && (tokens.classes.length > 0 ? (tokens.classes.every(cls => node.classList.contains(cls))) : true)
+                                ) {
+                                    nodes.push(node);
+                                }
+                            });
+                            results.push(nodes);
+                        } else if (tokens.classes.length > 0) {
+                            const nodes = [];
+                            document.body.diveTheDOM(node => {
+                                if (tokens.classes.every(cls => node.classList.contains(cls))) {
+                                    nodes.push(node);
+                                }
+                            });
+                            results.push(nodes);
+                        }
+                    } else if (functions.length > 0 && i === arguments.length - 1) {
+                        if (functions.length === 1) {
+                            functions.push(arg); // 'reject' function
+                        } else {
+                            thisArg = arg;
+                        }
+                    } else if (aa.isFunction(arg)) {
+                        functions.push(arg);
+                    } else if ((arg === null || arg === undefined) && functions.length === 0) {
+                        functions.push(null);
+                    } else {
+                        throw new TypeError("Unauthorized argument");
+                    }
+                });
+                aa.throwErrorIf( functions.length > 2, "Arguments must not have more than two functions to define 'resolve' and 'reject' functions. A third function may be considered as context for execution, only if given as last argument." );
+
+                const resolve = functions.length > 0 ? functions[0] : null;
+                const reject = functions.length > 1 ? functions[1] : null;
+
+                if (results.every(node => node !== null)) {
+                    if (resolve) {
+                        resolve.apply(thisArg, results);
+                    }
+                } else {
+                    if (reject) {
+                        reject.apply(thisArg, results);
+                    }
+                }
+                return results;
+            }
+        })(),
         el:                         function (id) {
             /**
              * How to call:
@@ -97,6 +229,7 @@
              *
              * #return {DOM element}
              */
+
             const resolve = (arguments && arguments.length>1 && aa.isFunction(arguments[1]) ? arguments[1] : undefined);
             const reject = (arguments && arguments.length>2 && aa.isFunction(arguments[2]) ? arguments[2] : undefined);
             const thisArg = (arguments.length > 1 && !aa.isFunction(arguments[1]) ?
@@ -129,12 +262,9 @@
             }
             return undefined;
         },
-        log:                        function (){
-            console.log.apply(this, arguments);
-        },
-        warn:                       function (){
-            console.warn.apply(this, arguments);
-        },
+        error:                      console.error,
+        log:                        console.log,
+        warn:                       console.warn,
     });
     // ----------------------------------------------------------------
     aa.deploy(aa, {
