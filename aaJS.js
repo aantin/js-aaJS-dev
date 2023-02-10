@@ -795,6 +795,13 @@
             }
             return aRet.join('');    
         },
+        inArray:                    function (list) {
+            aa.arg.test(list, aa.isArray, "'list'");
+
+            return function (item) {
+                return (list.indexOf(item) > -1);
+            };
+        },
         inbetween:                  function (value, min, max){
             return (
                 aa.isNumber(value)
