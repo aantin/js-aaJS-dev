@@ -81,12 +81,6 @@
     });
     aa.deploy(window, {
         els: (function () {
-            function addToken (type, token, tokens) {
-                token = token.trim();
-                if (token.length) {
-                    tokens[type].push(token);
-                }
-            }
             return function (selector) {
                 /**
                  * Usage:
@@ -121,61 +115,30 @@
                 Array.from(arguments)
                 .forEach((arg, i) => {
                     if (aa.isString(arg)) {
-                        const classes   = [];
-                        const tokens    = {
-                            classes:    [],
-                            ids:        [], // must not contain more than one item
-                            tags:       []  // must not contain more than one item
-                        };
+                        const {id, tag, classes} = aa.selectorSplit(arg);
 
-                        let type = 'tags';
-                        let currToken = '';
-                        
-                        arg = arg.trim();
-                        arg.forEach(char => {
-                            switch (char) {
-                            case '#': (() => {
-                                addToken(type, currToken, tokens);
-                                type = 'ids';
-                                currToken = ''
-                            })(); break;
-                            case '.': (() => {
-                                addToken(type, currToken, tokens);
-                                type = 'classes';
-                                currToken = ''
-                            })(); break;
-                            default: (() => {
-                                currToken += char;
-                            })(); break;
-                            }
-                        });
-                        addToken(type, currToken, tokens);
-                        
-                        aa.throwErrorIf( tokens.ids.length > 1, "Selector must not have more than one ID." );
-                        aa.throwErrorIf( tokens.tags.length > 1, "Selector must not have more than one tag name." );
-
-                        if (tokens.ids.length > 0) {
-                            const node = document.getElementById(tokens.ids.first);
-                            if (node && (tokens.classes.length > 0 ? (tokens.classes.every(cls => node.classList.contains(cls))) : true)) {
+                        if (id !== null) {
+                            const node = document.getElementById(id);
+                            if (node && (classes.length > 0 ? (classes.every(cls => node.classList.contains(cls))) : true)) {
                                 results.push(node);
                             } else {
                                 results.push(null);
                             }
-                        } else if (tokens.tags.length > 0) {
+                        } else if (tag !== null) {
                             const nodes = [];
-                            Array.from(document.getElementsByTagName(tokens.tags.first))
+                            Array.from(document.getElementsByTagName(tag))
                             .forEach(node => {
-                                if ((tokens.ids.first ? (tokens.ids.first && node.id && node.id === tokens.ids.first) : true)
+                                if ((id ? (id && node.id && node.id === id) : true)
                                     && (tokens.classes.length > 0 ? (tokens.classes.every(cls => node.classList.contains(cls))) : true)
                                 ) {
                                     nodes.push(node);
                                 }
                             });
                             results.push(nodes);
-                        } else if (tokens.classes.length > 0) {
+                        } else if (classes.length > 0) {
                             const nodes = [];
                             document.body.diveTheDOM(node => {
-                                if (tokens.classes.every(cls => node.classList.contains(cls))) {
+                                if (classes.every(cls => node.classList.contains(cls))) {
                                     nodes.push(node);
                                 }
                             });
@@ -1146,6 +1109,79 @@
                 }
             });
         },
+        selectorSplit:              (function () {
+            function addToken (type, token, tokens) {
+                token = token.trim();
+                if (token.length) {
+                    tokens[type].push(token);
+                }
+            }
+            return function (selector) {
+                /**
+                 * Extract tagName, id and classes from given selector.
+                 * 
+                 * @param <string> selector
+                 * Every selector must be a string formatted like 'tag#id.class1.class2...' or 'tag.class1.class2...#id'.
+                 * 
+                 * @return <object>
+                 *      {classes, id, tag}
+                 */
+                
+                const tokens    = {
+                    classes:    [],
+                    ids:        [], // must not contain more than one item
+                    tags:       []  // must not contain more than one item
+                };
+                const result = {
+                    classes: [],
+                    id: null,
+                    tag: null
+                };
+
+                let type = 'tags';
+                let currToken = '';
+                
+                selector = selector.trim();
+                selector.forEach(char => {
+                    switch (char) {
+
+                    // ID:
+                    case '#': (() => {
+                        addToken(type, currToken, tokens);
+                        type = 'ids';
+                        currToken = ''
+                    })(); break;
+
+                    // Classes:
+                    case '.': (() => {
+                        addToken(type, currToken, tokens);
+                        type = 'classes';
+                        currToken = ''
+                    })(); break;
+
+                    // parse characters:
+                    default: (() => {
+                        currToken += char;
+                    })(); break;
+                    }
+                });
+                addToken(type, currToken, tokens);
+                
+                aa.throwErrorIf( tokens.ids.length > 1, "Selector must not have more than one ID." );
+                aa.throwErrorIf( tokens.tags.length > 1, "Selector must not have more than one tag name." );
+
+                if (tokens.ids.length > 0) {
+                    result.id = tokens.ids.first;
+                }
+                if (tokens.tags.length > 0) {
+                    result.tag = tokens.tags.first;
+                }
+                if (tokens.classes.length > 0) {
+                    result.classes = tokens.classes;
+                }
+                return result;
+            };
+        })(),
         removeDOM:                  function (elt){
 
             elt.parentNode.removeChild(elt);
@@ -4048,10 +4084,9 @@
         },
         ignoreKeys:        function (...keys) {
             /**
-             * @param 
+             * @param <string[]> keys
              */
-            if (!aa.isArrayOfStrings(keys)) { throw new TypeError("Argument must be an Array."); }
-
+            if (!aa.isArrayOfStrings(keys)) { throw new TypeError("Argument must be an Array of Strings."); }
 
             return this.filter((v, k)=>{ return !keys.has(k); });
         }
