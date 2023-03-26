@@ -1403,6 +1403,7 @@
             const spec = aa.arg.optional(arguments, 1, {}, aa.verifyObject({
                 getter: aa.isFunction,
                 setter: aa.isFunction,
+                verifiers: aa.isObjectOfFunctions
             }));
             spec.sprinkle({
                 getter: get,
@@ -1460,14 +1461,18 @@
                 get: aa.isFunction,
                 set: aa.isFunction
             }));
+            const {get, set} = aa.mapFactory();
             spec.sprinkle({get, set});
             
             const that = {};
             const keys = JS.accessors.getKeys.call(this, {get: spec.get, set: spec.set});
+            const emit = (aa.event.getEmitter.call(this, spec.get, 'listeners')).bind(this);
             keys.forEach(key => {
                 Object.defineProperty(that, key, {
                     get: () => spec.get(this, key),
-                    set: value => { spec.set(this, key, value); }
+                    set: value => {
+                        spec.set(this, key, value);
+                    }
                 });
             });
             return Object.freeze(that);
@@ -2587,6 +2592,135 @@
         },
     }, {force: true});
     aa.deploy(aa, {
+        event: (() => {
+            const id = aa.uid();
+            return {
+                getEmitter:     function (accessor /*, key, spec */) {
+                    /**
+                     *  Usage:
+                     *      const emit = getEmitter(get, "listeners");
+                     * 
+                     * @param {function|object} accessor
+                     * @param {string} key (optional)
+                     * @param {object} spec (optional)
+                     * 
+                     * @return {function}
+                     */
+                    aa.arg.test(accessor, arg => (aa.isFunction(arg) || aa.verifyObject({
+                        get: aa.isFunction,
+                        set: aa.isFunction,
+                    })(arg)), `'accessor'`);
+                    const key = aa.arg.optional(arguments, 1, `listeners-${id}`, aa.nonEmptyString);
+                    const spec = aa.arg.optional(arguments, 2, {}, arg => aa.isObject(arg) && arg.verify(aa.events.specs));
+
+                    if (aa.isObject(accessor)) {
+                        accessor.sprinkle({get, set});
+                    }
+                    const getter = aa.isFunction(accessor) ? accessor : accessor.get;
+                    const setter = aa.isObject(accessor) ? accessor.set : set;
+
+                    return function emit (eventName, data) {
+                        /**
+                         *  Usage:
+                         *      emit.call(this, "eventname", data);
+                         * 
+                         * @param {string} eventName
+                         * @param {any} data
+                         * 
+                         * @return {void}
+                         */
+                        aa.arg.test(eventName, aa.nonEmptyString, `'eventName'`);
+                        let listeners = getter(this, key);
+                        if (listeners === undefined) {
+                            setter(this, key, {});
+                            listeners = getter(this, key);
+                        }
+                        aa.arg.test(listeners, aa.isObject, `'listeners'`);
+
+                        eventName = eventName.trim();
+                        if (listeners.hasOwnProperty(eventName)) {
+                            listeners[eventName].forEach(callback => {
+                                const event = null; // A future event, some day...
+                                callback(event, data, this);
+                            });
+                        }
+                    };
+                },
+                getListener:    function (accessor /*, key, spec */) {
+                    /**
+                     * Usage:
+                     *      MyClass.prototype.on = getListener(get, "listeners");
+                     * 
+                     * @param {function|object} accessor (if accessor is a function, accessor defines the getter; else if accessor is an object)
+                     * @param {string} key (optional)
+                     * @param {object} spec (optional)
+                     * 
+                     * @return {function}
+                     */
+                    aa.arg.test(accessor, arg => (aa.isFunction(arg) || aa.verifyObject({
+                        get: aa.isFunction,
+                        set: aa.isFunction,
+                    })(arg)), `'accessor'`);
+                    const key = aa.arg.optional(arguments, 1, `listeners-${id}`, aa.nonEmptyString);
+                    const spec = aa.arg.optional(arguments, 2, {}, arg => aa.isObject(arg) && arg.verify(aa.events.specs));
+
+                    if (aa.isObject(accessor)) {
+                        accessor.sprinkle({get, set});
+                    }
+                    const getter = aa.isFunction(accessor) ? accessor : accessor.get;
+                    const setter = aa.isObject(accessor) ? accessor.set : set;
+
+                    const on = function (eventName, callback) {
+                        /**
+                         *  Usage:
+                         *      this.on("eventname", (data) => {
+                         *          // do stuff with data...
+                         *      }));
+                         *  or
+                         *      this.on({
+                         *          eventname: data => {
+                         *              // do stuff with data...
+                         *          }
+                         *      });
+                         * 
+                         * @param {string} eventName
+                         * @param {function} callback
+                         * 
+                         * @return {object} this, for chaining
+                         */
+
+                        let listeners = getter(this, key);
+                        if (listeners === undefined) {
+                            setter(this, key, {});
+                            listeners = getter(this, key);
+                        }
+                        aa.arg.test(listeners, aa.isObject, `'listeners'`);
+
+                        if (aa.isObject(eventName)) {
+                            aa.arg.test(eventName, aa.isObjectOfFunctions, `'eventName'`);
+                            eventName.forEach((callback, name) => {
+                                on.call(this, name, callback);
+                            });
+                            return;
+                        }
+
+                        aa.arg.test(eventName, aa.nonEmptyString, `'eventName'`);
+                        aa.arg.test(callback, aa.isFunction, `'callback'`);
+
+                        eventName = eventName.trim();
+                        if (!listeners.hasOwnProperty(eventName)) {
+                            listeners[eventName] = [];
+                        }
+                        listeners[eventName].push(callback);
+                        return this;
+                    };
+                    return on;
+                },
+                specs: {
+                    verbose: value => typeof value === "boolean"
+                }
+            };
+        })(),
         debounce:   function (callback, delay=20) {
             /**
              * @param {Function} callback
@@ -3520,6 +3654,16 @@
     aa.deploy(Object.prototype, {
         // ----------------------------------------------------------------
         // Object functions:
+        bind:               function (thisArg) {
+            const o = {};
+            this.forEach((value, key) => {
+                o[key] = ((aa.isFunction(value) || aa.isObject(value)) ?
+                    value.bind(thisArg)
+                    : value
+                );
+            });
+            return o;
+        },
         cancel:             function (eventName, callback) {
             var bubble = (arguments && arguments.length > 2 && aa.isBool(arguments[2]) ? arguments[2] : false);
 
