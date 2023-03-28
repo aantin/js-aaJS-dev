@@ -2941,6 +2941,12 @@
             }
             return aRet.join('');    
         },
+        encodeForDOM:           function () {
+            return this
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            ;
+        },
         isEqual:                function (str) {
             if (!aa.isString(str)) { throw new TypeError("Argument must be a String."); }
 
