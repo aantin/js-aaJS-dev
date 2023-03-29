@@ -580,6 +580,7 @@
                 document.head.appendChild(css);
             }
         },
+        any:                        () => true,
         b64_to_utf8:                function (param){
 
             return decodeURIComponent(escape(window.atob(param)));
@@ -2561,7 +2562,13 @@
         },
         uid:                        (function () {
             let x = 0;
-            return function (length=null) {
+            return function (length=null /*, spec={} */) {
+                const spec = aa.arg.optional(arguments, 1, {}, aa.verifyObject({
+                    hex: aa.isBool
+                }));
+                // Options:
+                if (!spec.hasOwnProperty('hex')) { spec.hex = false; }
+
                 let uid = '';
 
                 if (length === null) {
@@ -2580,7 +2587,9 @@
                 } else {
                     aa.arg.test(length, aa.isStrictlyPositiveInt, "'length'");
 
-                    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+                    let chars = '0123456789abcdef';
+                    if (!spec.hex) { chars += 'ghijklmnopqrstuvwxyz'; }
+
                     for (let i=0; i<length; i++) {
                         const index = Math.floor(chars.length*Math.random());
                         const char = chars[index];
