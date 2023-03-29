@@ -2561,19 +2561,32 @@
         },
         uid:                        (function () {
             let x = 0;
-            return function () {
-                let i;
-                let prefix = '';
-                let now = Date.now().toString(16)+x.toString(16);
+            return function (length=null) {
+                let uid = '';
 
-                for (i=0; i<32-now.length; i++) {
-                    prefix += Math.floor(16*Math.random()).toString(16);
+                if (length === null) {
+                    let i;
+                    let prefix = '';
+                    let now = Date.now().toString(16)+x.toString(16);
+
+                    for (i=0; i<32-now.length; i++) {
+                        prefix += Math.floor(16*Math.random()).toString(16);
+                    }
+                    now = prefix+now;
+                    const p = now.match(/^.*([0-9a-f]{8})([0-9a-f]{4})([0-9a-f]{3})([0-9a-f]{4})([0-9a-f]{12})$/);
+                    uid = p[1]+'-'+p[2]+'-4'+p[3]+'-'+p[4]+'-'+p[5];
+
+                    x++;
+                } else {
+                    aa.arg.test(length, aa.isStrictlyPositiveInt, "'length'");
+
+                    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+                    for (let i=0; i<length; i++) {
+                        const index = Math.floor(chars.length*Math.random());
+                        const char = chars[index];
+                        uid += char;
+                    }
                 }
-                now = prefix+now;
-                const p = now.match(/^.*([0-9a-f]{8})([0-9a-f]{4})([0-9a-f]{3})([0-9a-f]{4})([0-9a-f]{12})$/);
-                const uid = p[1]+'-'+p[2]+'-4'+p[3]+'-'+p[4]+'-'+p[5];
-
-                x++;
                 return uid;
             };
         })(),
