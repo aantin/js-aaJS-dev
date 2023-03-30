@@ -2826,6 +2826,17 @@
         },
         randomRange:    function (min, max) {
             return Math.floor(Math.random() * (1+max - min) + min);
+        },
+        toOrdinal:      function (num) {
+            aa.arg.test(num, aa.isNumber);
+            num += '';
+            const lastChar = parseInt(num[num.length-1]);
+            const ordinals = [
+                'st',
+                'nd',
+                'rd'
+            ]
+            return `${num}${ordinals[lastChar - 1] || 'th'}`;
         }
     });
     aa.deploy(Number.prototype, {
