@@ -2465,6 +2465,7 @@
                 return list.has(item);
             };
         },
+        // makeSetter:                 function (Instancer) {},
         mapFactory:                 function () {
             const map = new WeakMap();
             const id = aa.uid();
@@ -2625,6 +2626,8 @@
                     /**
                      *  Usage:
                      *      const emit = getEmitter(get, "listeners");
+                     *      const emit = getEmitter({get}, "listeners");
+                     *      const emit = getEmitter({get, set}, "listeners");
                      * 
                      * @param {function|object} accessor
                      * @param {string} key (optional)
@@ -2676,6 +2679,8 @@
                     /**
                      * Usage:
                      *      MyClass.prototype.on = getListener(get, "listeners");
+                     *      MyClass.prototype.on = getListener({get}, "listeners");
+                     *      MyClass.prototype.on = getListener({get, set}, "listeners");
                      * 
                      * @param {function|object} accessor (if accessor is a function, accessor defines the getter; else if accessor is an object)
                      * @param {string} key (optional)
@@ -2715,13 +2720,6 @@
                          * @return {object} this, for chaining
                          */
 
-                        let listeners = getter(this, key);
-                        if (listeners === undefined) {
-                            setter(this, key, {});
-                            listeners = getter(this, key);
-                        }
-                        aa.arg.test(listeners, aa.isObject, `'listeners'`);
-
                         // If an object is given, re-call on each entry:
                         if (aa.isObject(eventName)) {
                             aa.arg.test(eventName, aa.isObjectOfFunctions, `'eventName'`);
@@ -2731,6 +2729,13 @@
                             return this;
                         }
 
+                        // Call once:
+                        let listeners = getter(this, key);
+                        if (listeners === undefined) {
+                            setter(this, key, {});
+                            listeners = getter(this, key);
+                        }
+                        aa.arg.test(listeners, aa.isObject, `'listeners'`);
                         aa.arg.test(eventName, aa.nonEmptyString, `'eventName'`);
                         aa.arg.test(callback, aa.isFunction, `'callback'`);
 
