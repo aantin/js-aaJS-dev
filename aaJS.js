@@ -2466,7 +2466,7 @@
             };
         },
         mapFactory:                 function () {
-            const privates = new WeakMap();
+            const map = new WeakMap();
             const id = aa.uid();
             const methods = {
                 /**
@@ -2478,7 +2478,7 @@
                 get: function (that, key) {
                     aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
-                    const data = privates.get(that, "data");
+                    const data = map.get(that, "data");
                     if (!data) {
                         return undefined;
                     }
@@ -2499,7 +2499,7 @@
                     return function (key) {
                         aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
-                        const data = privates.get(that, "data");
+                        const data = map.get(that, "data");
                         if (!data) {
                             return undefined;
                         }
@@ -2517,12 +2517,12 @@
                 set: function (that, key, value) {
                     aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
-                    let data = privates.get(that, "data");
+                    let data = map.get(that, "data");
                     if (!data) {
                         data = {};
                     }
                     data[key] = value;
-                    privates.set(that, data);
+                    map.set(that, data);
                 },
 
                 /**
@@ -2540,14 +2540,18 @@
                     return function (key, value) {
                         aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
-                        const data = privates.get(that, "data") || {};
+                        const data = map.get(that, "data") || {};
                         data[key] = value;
-                        privates.set(that, data);
+                        map.set(that, data);
                     };
                 },
             };
             Object.keys(methods).forEach(key => {
-                methods[key].id = id;
+                Object.defineProperties(methods[key], {
+                    id: {
+                        get: () => id
+                    }
+                });
             });
             return Object.freeze(methods);
         },
@@ -2633,7 +2637,7 @@
                         set: aa.isFunction,
                     })(arg)), `'accessor'`);
                     const key = aa.arg.optional(arguments, 1, `listeners-${id}`, aa.nonEmptyString);
-                    const spec = aa.arg.optional(arguments, 2, {}, arg => aa.isObject(arg) && arg.verify(aa.events.specs));
+                    const spec = aa.arg.optional(arguments, 2, {}, aa.verifyObject(aa.event.specs));
 
                     if (aa.isObject(accessor)) {
                         accessor.sprinkle({get, set});
@@ -2684,7 +2688,7 @@
                         set: aa.isFunction,
                     })(arg)), `'accessor'`);
                     const key = aa.arg.optional(arguments, 1, `listeners-${id}`, aa.nonEmptyString);
-                    const spec = aa.arg.optional(arguments, 2, {}, arg => aa.isObject(arg) && arg.verify(aa.events.specs));
+                    const spec = aa.arg.optional(arguments, 2, {}, aa.verifyObject(aa.event.specs));
 
                     if (aa.isObject(accessor)) {
                         accessor.sprinkle({get, set});
@@ -2718,12 +2722,13 @@
                         }
                         aa.arg.test(listeners, aa.isObject, `'listeners'`);
 
+                        // If an object is given, re-call on each entry:
                         if (aa.isObject(eventName)) {
                             aa.arg.test(eventName, aa.isObjectOfFunctions, `'eventName'`);
                             eventName.forEach((callback, name) => {
                                 on.call(this, name, callback);
                             });
-                            return;
+                            return this;
                         }
 
                         aa.arg.test(eventName, aa.nonEmptyString, `'eventName'`);
