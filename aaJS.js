@@ -1095,6 +1095,11 @@
                 typeof(value) === 'string'
             );
         },
+        isStringMatch:              function (pattern) {
+            return function (str) {
+                return aa.isString(str) && !!str.match(pattern);
+            };
+        },
         nonEmptyString:             function (str) {
             return (
                 aa.isString(str)
