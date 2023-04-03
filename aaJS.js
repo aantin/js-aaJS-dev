@@ -1200,6 +1200,12 @@
             
             return param.split(car1).join(car2);
         },
+        resizeTextarea:             function (textarea) {
+            aa.arg.test(textarea, arg => aa.isElement(arg) && arg?.tagName?.toLowerCase?.() === 'textarea', "'textarea'");
+
+            textarea.style.height = '0px';
+            textarea.style.height = `${textarea.scrollHeight}px`;
+        },
         setCookie:                  function (sName, sValue){
             var today = new Date();
             var expires = new Date();
@@ -4140,7 +4146,7 @@
                 }
             });
         },
-        toSortedArray: function () {
+        toSortedArray:      function () {
             /**
              * Return an array of two arrays. The first array contains the keys, sorted. The second array contains their coresponding values.
              * 
@@ -4193,9 +4199,9 @@
         // ----------------------------------------------------------------
         // DOM functions:
         clear:              function () {
-            while (this.children.length) {
-                this.firstChild.removeNode();
-            }
+            aa.arg.test(this, aa.isNode, ": 'clear' method can not be called on an Object that is not a DOM Element.");
+            
+            this.innerHTML = '';
         },
         diveByClass:        function (className,func) {
             /**
