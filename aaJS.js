@@ -3707,17 +3707,42 @@
         getAbsolutePositionOf:  function (element) {
             aa.arg.test(element, aa.isElement, "'element'");
 
-            let left    = 0,
-                top     = 0;
+            let left = 0,
+                top = 0;
             
             do {
-                top += element.offsetTop  || 0;
-                left += element.offsetLeft || 0;
+                top += element.offsetTop  ?? 0;
+                left += element.offsetLeft ?? 0;
                 element = element.offsetParent;
             } while (element);
 
-            return {top, left};
-        }
+            return {left, top};
+        },
+        getFixedPositionOf:    function (element) {
+            aa.arg.test(element, aa.isElement, "'element'");
+
+            const absolute = Object.getAbsolutePositionOf(element);
+            const scroll = Object.getScrollPositionOf(element);
+
+            return {
+                left:   absolute.left - scroll.left,
+                top:    absolute.top - scroll.top
+            };
+        },
+        getScrollPositionOf:    function (element) {
+            aa.arg.test(element, aa.isElement, "'element'");
+
+            let left = 0,
+                top = 0;
+            
+            do {
+                left += element.scrollLeft ?? 0;
+                top += element.scrollTop ?? 0;
+                element = element.parentNode;
+            } while (element);
+
+            return {left, top};
+        },
     });
     aa.deploy(Object.prototype, {
         // ----------------------------------------------------------------
