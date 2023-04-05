@@ -1193,13 +1193,43 @@
             elt.parentNode.removeChild(elt);
         },
         repeat:                     function (times, callback /*, thisArg */) {
+            /**
+             * Repeat an execution a given number of times.
+             * 
+             * @param <int> times:          A number of times to repeat the execution.
+             * @param <function> callback:  A Function to repeat. The function may return a Boolean; if false is returned repetition will stop.
+             * 
+             * @return <obj>
+             *      <boolean> done:         true if every repetition succeeded, false if repetition stopped before the end.
+             *      <int> index:            The index where the repetition stopped.
+             * 
+             * Usage:
+             *  aa.repeat(5, i => {
+                * if (somethingWrong) { return false; }
+             *  });
+             */
+            
             aa.arg.test(times, aa.isPositiveInt, "'times'");
             aa.arg.test(callback, aa.isFunction, "'callback'");
+
+            const result = {
+                done: true,
+                index: null
+            };
+
             const thisArg = aa.arg.optional(arguments, 2, null);
 
             for (let i=0; i<times; i++) {
-                callback.call(thisArg, i);
+                const result = callback.call(thisArg, i);
+                aa.throwErrorIf(result !== undefined && !aa.isBool(result), "The callback Function must return a Boolean.");
+
+                result.index = i;
+                if (result === false) {
+                    i = times;
+                    result.done = false;
+                }
             }
+            return Object.freeze(result);
         },
         replace:                    function (car1,car2,param){
 
