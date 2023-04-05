@@ -1192,6 +1192,15 @@
 
             elt.parentNode.removeChild(elt);
         },
+        repeat:                     function (times, callback /*, thisArg */) {
+            aa.arg.test(times, aa.isPositiveInt, "'times'");
+            aa.arg.test(callback, aa.isFunction, "'callback'");
+            const thisArg = aa.arg.optional(arguments, 2, null);
+
+            for (let i=0; i<times; i++) {
+                callback.call(thisArg, i);
+            }
+        },
         replace:                    function (car1,car2,param){
 
             var car1;
