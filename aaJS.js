@@ -1220,11 +1220,11 @@
             const thisArg = aa.arg.optional(arguments, 2, null);
 
             for (let i=0; i<times; i++) {
-                const result = callback.call(thisArg, i);
-                aa.throwErrorIf(result !== undefined && !aa.isBool(result), "The callback Function must return a Boolean.");
+                const iResult = callback.call(thisArg, i);
+                aa.throwErrorIf(iResult !== undefined && !aa.isBool(iResult), "The callback Function must return a Boolean.");
 
                 result.index = i;
-                if (result === false) {
+                if (iResult === false) {
                     i = times;
                     result.done = false;
                 }
