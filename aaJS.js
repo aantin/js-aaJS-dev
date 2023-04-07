@@ -974,18 +974,38 @@
         isArray:                    function (param){
             return Array.isArray(param);
         },
-        isArrayLike:                function(item) {
+        isArrayLike:                function (list) {
             return (
-                Array.isArray(item) || 
-                (!!item &&
-                    typeof item === "object" &&
-                    typeof (item.length) === "number" && 
-                    (item.length === 0 ||
-                        (item.length > 0 && 
-                        (item.length - 1) in item)
+                Array.isArray(list) || 
+                (
+                    typeof list === "object"
+                    && typeof (list.length) === "number"
+                    && (list.length === 0
+                        || (
+                            list.length > 0
+                            && list.hasOwnProperty(list.length - 1)
+                            // && (list.length - 1) in list
+                        )
                     )
                 )
             );
+        },
+        isArrayOf:                  function (callback) {
+            return function (list) {
+                return aa.isArray(list) && list.every(callback);
+            };
+        },
+        isArrayOfFunctions:         function (a){
+
+            return (aa.isArray(a) && a.reduce((ok, v)=>{ return (!aa.isFunction(v) ? false : ok); }, true));
+        },
+        isArrayOfNumbers:           function (a){
+
+            return (aa.isArray(a) && a.every(v => aa.isNumber(v)));
+        },
+        isArrayOfStrings:           function (a){
+            
+            return (aa.isArray(a) && a.reduce((ok, v)=>{ return (!aa.isString(v) ? false : ok); }, true));
         },
         isBool:                     function (o){
             return (o === true || o === false);
@@ -1026,6 +1046,7 @@
                 : o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
             );
         },
+        isNullOrNonEmptyString:     v => (v === null || aa.nonEmptyString(v)),
         isNumber:                   function (param){
             return (
                 typeof param === "number"
@@ -1039,24 +1060,6 @@
         isObject:                   function (param){
             return (typeof param === 'object' && param !== null && !Array.isArray(param));
         },
-        isArrayOf:                  function (callback) {
-            return function (list) {
-                return aa.isArray(list) && list.every(callback);
-            };
-        },
-        isArrayOfFunctions:         function (a){
-
-            return (aa.isArray(a) && a.reduce((ok, v)=>{ return (!aa.isFunction(v) ? false : ok); }, true));
-        },
-        isArrayOfNumbers:           function (a){
-
-            return (aa.isArray(a) && a.every(v => aa.isNumber(v)));
-        },
-        isArrayOfStrings:           function (a){
-            
-            return (aa.isArray(a) && a.reduce((ok, v)=>{ return (!aa.isString(v) ? false : ok); }, true));
-        },
-        isNullOrNonEmptyString:     v => (v === null || aa.nonEmptyString(v)),
         isObjectOf:                 function (callback) {
             return function (collection) {
                 return aa.isObject(collection) && collection.every(callback);
@@ -3171,7 +3174,7 @@
             }
             return str;
         },
-        find: function (callback /*, thisArg */) {
+        find:   function (callback /*, thisArg */) {
             if (!aa.isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
             const thisArg = (arguments && arguments.length > 1 ? arguments[1] : this);
             let i;
@@ -3240,14 +3243,14 @@
         }
     });
     aa.deploy(Array.prototype, {
-        clear:          function () {
+        clear:              function () {
             // const that = Object(this);
             // that.splice(0, that.length);
             while (this.length) {
                 this.pop();
             }
         },
-        getFirst:       function () {
+        getFirst:           function () {
             if (this.length) {
                 return this[0];
             }
@@ -3256,7 +3259,7 @@
                 return null;
             }
         },
-        getLast:        function () {
+        getLast:            function () {
             if (this.length) {
                 return this[this.length-1];
             }
@@ -3264,7 +3267,7 @@
                 return undefined;
             }
         },
-        has:            function (p) {
+        has:                function (p) {
             /**
              * @param {any} 
              */
@@ -3285,35 +3288,35 @@
                 return this.indexOf(p) >= 0;
             }
         },
-        hasKey:         function (param) {
+        hasKey:             function (param) {
 
             return (this[param] !== undefined);
         },
-        hasKeyString:   function (param){
+        hasKeyString:       function (param){
             return (typeof this[param] !== 'undefined' && aa.isString(this[param]));
         },
-        hasKeyInt:      function (param){
+        hasKeyInt:          function (param){
             return (typeof this[param] !== 'undefined' && aa.isInt(this[param]));
         },
-        hasKeyArray:    function (param){
+        hasKeyArray:        function (param){
             return (typeof this[param] !== 'undefined' && aa.isArray(this[param]));
         },
-        hasKeyObject:   function (param){
+        hasKeyObject:       function (param){
             return (typeof this[param] !== 'undefined' && aa.isObject(this[param]));
         },
-        pushUnique: function (item) {
+        pushUnique:         function (item) {
             if (this.indexOf(item) < 0) {
                 this.push(item);
             }
             return this.length;
         },
-        removeElement:  function (element) {
+        removeElement:      function (element) {
             var i = this.indexOf(element);
             if (i > -1) {
                 this.splice(i, 1);
             }
         },
-        sortFloat:      function () {
+        sortFloat:          function () {
             
             var i;
             var j;
@@ -3362,11 +3365,11 @@
                 this[i] = parseFloat((parseInt(this[i]))/multiplicateur);
             }
         },
-        sortNatural:    function (){
+        sortNatural:        function (){
             this.sort(aa.sortNatural);
             return this;
         },
-        remove:         function (item /*, removeAll=false */) {
+        remove:             function (item /*, removeAll=false */) {
             /**
              * Removes first or all item(s) matching the argument from the Array. Returns the first found item or undefined.
              *
@@ -3400,7 +3403,7 @@
 
             return undefined;
         },
-        verify:         function (callback){
+        verify:             function (callback){
             if (!aa.isFunction(callback)) { throw new TypeError("Argument must be a Function."); }
 
             return (this.filter((item)=>{
@@ -3410,7 +3413,7 @@
         },
 
         // from MDN:
-        every:          function (callback /*, thisArg */) {
+        every:              function (callback /*, thisArg */) {
             "use strict";
             var i;
             var value, result;
@@ -3445,7 +3448,7 @@
             // }
             return true;
         },
-        filter:         function (callback /*, thisArg */) {
+        filter:             function (callback /*, thisArg */) {
             "use strict";
 
             if (this === void 0 || this === null) {
@@ -3480,7 +3483,7 @@
             }
             return res;
         },
-        find:           function (callback) {
+        find:               function (callback) {
             "use strict";
             if (this == null) {
                 throw new TypeError('Array.prototype.find called on null or undefined');
@@ -3502,7 +3505,7 @@
             }
             return undefined;
         },
-        findReverse:    function (callback) {
+        findReverse:        function (callback) {
             'use strict';
             if (this == null) {
                 throw new TypeError('Array.prototype.find called on null or undefined');
@@ -3526,31 +3529,63 @@
         },
         // ECMA-262, Edition 5, 15.4.4.18
         // Référence: http://es5.github.io/#x15.4.4.18
-        forEach:        function (callback, thisArg) {
-            var T, k;
-            var kValue;
+        forEach:            function (callback, thisArg) {
+            let i, value;
 
             if (this === null) { throw new TypeError("Array.forEach called on null or undefined"); }
-            if (typeof callback !== "function") { throw new TypeError("First argument must be a Function."); }
+            if (!aa.isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
 
-            var that = Object(this);
-            var len = that.length >>> 0;
+            const that = Object(this);
+            const len = that.length ?? 0;
 
-            if (arguments.length > 1) {
-                T = thisArg;
-            }
-
-            k = 0;
-            while(k < len) {
-                if (k in that) {
-                    kValue = that[k];
-                    callback.call(T, kValue, k, that);
+            i = 0;
+            while (i < len) {
+                if (i in that) {
+                    value = that[i];
+                    callback.call(thisArg, value, i, that);
                 }
-                k++;
+                i++;
             }
         },
+        loopThrough:        function (callback /*, spec */) {
+            /**
+             * Loop through every item of an array.
+             * 
+             * @param <function> callback:  A function to call on every item.
+             * @param <object> spec:        Some options:
+             *      @key <bool> breakable:  If set to true (default), the loop will stop iterating after the callback argument returns anything else than undefined; if set to false (default), The loop will iterate on every item.
+             *      @key <any> context:     The context into which the callback argument may run.
+             */
+            const spec = aa.arg.optional(arguments, 1, {}, aa.verifyObject({
+                breakable:      aa.isBool,
+                context:        aa.any
+            }));
+            spec.sprinkle({
+                breakable:      true,
+                context:        undefined
+            });
+
+            if (this === null) { throw new TypeError("Array.forEach called on null or undefined"); }
+            if (!aa.isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
+
+            const that = Object(this);
+            let i, value, result;
+
+            for (let i=0; i<that.length; i++) {
+                if (i in that) {
+                    value = that[i];
+                    const result = callback.call(spec.context, value, i, that);
+                    if (spec.breakable) {
+                        if (result !== undefined) {
+                            return result;
+                        }
+                    }
+                }
+            }
+            return undefined;
+        },
         // based on Array.forEach
-        forEachReverse: function (callback, thisArg) {
+        forEachReverse:     function (callback, thisArg) {
             var T, k;
             var kValue;
 
@@ -3573,7 +3608,7 @@
         },
         // Production steps / ECMA-262, Edition 5, 15.4.4.19
         // Référence : http://es5.github.io/#x15.4.4.19
-        map:            function (callback, thisArg) {
+        map:                function (callback, thisArg) {
 
             var T, A, k;
             var kValue, mappedValue;
@@ -3607,7 +3642,7 @@
         },
         // Production steps, ECMA-262, Edition 5, 15.4.4.21
         // Référence : http://es5.github.io/#x15.4.4.21
-        reduce:         function (callback /*, initialValue */) {
+        reduce_X:             function (callback /*, initialValue */) {
             "use strict";
             
             if (this === null) {
@@ -3639,9 +3674,30 @@
             }
             return value;
         },
+        reduce:             function (callback /*, accumulator, thisArg */) {
+            "use strict";
+            
+            if (this === null || this === undefined) {  throw new TypeError('Array.reduce called on null or undefined'); }
+            if (typeof callback !== "function") {       throw new TypeError('Callback argument must be a Function'); }
+            
+            let accumulator,
+                thisArg,
+                value;
+            
+            const that = Object(this);
+            
+            if (arguments.length > 1) { accumulator = arguments[1]; }
+            if (arguments.length > 2) { thisArg = arguments[2]; }
+
+            for (let i=0; i<that.length; i++) {
+                value = that[i];
+                accumulator = callback.call(thisArg, accumulator, value, i, that);
+            }
+            return accumulator;
+        },
         // Production steps, ECMA-262, Edition 5, 15.4.4.21
         // Référence : http://es5.github.io/#x15.4.4.21
-        reduceReverse:  function (callback /*, initialValue */) {
+        reduceReverse:      function (callback /*, initialValue */) {
             "use strict";
             
             if (this === null) {
@@ -3673,7 +3729,7 @@
         },
         // Production ECMA-262, Edition 5, 15.4.4.17
         // Référence : http://es5.github.io/#x15.4.4.17
-        some:           function (func /*, thisArg */) {
+        some:               function (func /*, thisArg */) {
             "use strict";
             if (this == null) { throw new TypeError("Array.prototype.some called on null ou undefined"); }
             if (typeof func !== "function") { throw new TypeError("First argument must be a Function."); }
@@ -3692,7 +3748,7 @@
         },
         // Production steps of ECMA-262, Edition 5, 15.4.4.22
         // Reference: http://es5.github.io/#x15.4.4.22
-        reduceRight:    function (callback /*, initialValue */) {
+        reduceRight:        function (callback /*, initialValue */) {
             "use strict";
             if (null === this || typeof this === "undefined") { throw new TypeError("Array.reduce called on null or undefined"); }
             if (typeof callback !== "function") { throw new TypeError(callback + " is not a function"); }
