@@ -766,6 +766,13 @@
                 return (list.indexOf(item) > -1);
             };
         },
+        inEnum:                     function (...items) {
+            aa.arg.test(items, aa.isArrayOfNonEmptyStrings, "'items'");
+
+            return function (item) {
+                return (items.indexOf(item) > -1);
+            };
+        },
         inbetween:                  function (value, min, max){
             return (
                 aa.isNumber(value)
@@ -1045,6 +1052,9 @@
                 ? o instanceof Node
                 : o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
             );
+        },
+        isArrayOfNonEmptyStrings:   function (list) {
+            return aa.isArray(list) && list.every(aa.nonEmptyString);
         },
         isNullOrNonEmptyString:     v => (v === null || aa.nonEmptyString(v)),
         isNumber:                   function (param){
