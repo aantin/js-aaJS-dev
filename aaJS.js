@@ -1081,6 +1081,12 @@
                 && o.reduce((ok, v)=>{ return (!aa.isFunction(v) ? false : ok); }, true)
             );
         },
+        isObjectOfStrings:          function (o){
+            return (
+                aa.isObject(o)
+                && o.reduce((ok, v) => (!aa.isString(v) ? false : ok), true)
+            );
+        },
         isObjectOfObjects:          function (param) {
             let ok = true;
             if (aa.isObject(param)) {
