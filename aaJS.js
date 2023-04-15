@@ -3320,6 +3320,27 @@
         hasKeyObject:       function (param){
             return (typeof this[param] !== 'undefined' && aa.isObject(this[param]));
         },
+        joinNatural:        function (spec={}) {
+            aa.arg.test(spec, aa.verifyObject({
+                default:    aa.isString,
+                last:       aa.isString,
+            }), "'spec'");
+            spec.sprinkle({
+                default: ', ',
+                last: ' & ',
+            });
+
+            if (this.length > 1) {
+                const last = this.last;
+                const firstItems = this.slice(0, -1)
+                
+                return [
+                    firstItems.join(spec.default),
+                    last
+                ].join(spec.last);
+            }
+            return this.join(spec.default);
+        },
         pushUnique:         function (item) {
             if (this.indexOf(item) < 0) {
                 this.push(item);
