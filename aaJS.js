@@ -4383,6 +4383,57 @@
                 console.warn('This Object is not an HTML ELEMENT.');
             }
         },
+        getElementsBy:      function (callback /*, thisArg */) {
+            /**
+             * Dive into the DOM, inside the Element tree, and return an Array of every node that verify a callback filtering Function.
+             * 
+             * @param <function> callback: A Boolean returning Function that will be used to filter every node inside the Element reference.
+             * @param <any> thisArg: Anything that will be used as context for execution.
+             * 
+             * @return <array>
+             */
+
+            aa.arg.test(callback, aa.isFunction, "'callback'");
+            const thisArg = aa.arg.optional(arguments, 1);
+
+            const nodes = [];
+
+            let that = Object(this);
+            that.diveTheDOM(node => {
+                const isVerified = callback.call(thisArg, node);
+                aa.throwErrorIf(!aa.isBool(isVerified), "Filter Function must return a Boolean.");
+                if (isVerified) {
+                    nodes.push(node);
+                }
+            });
+            
+            return nodes;
+        },
+        getFormElements:    function (/* thisArg */) {
+            /**
+             * Dive into the DOM, inside the Element tree, and return an Array of every form node.
+             * 
+             * @param <any> thisArg: Anything that will be used as context for execution.
+             * 
+             * @return <array>
+             */
+
+            const thisArg = aa.arg.optional(arguments, 0);
+
+            let that = Object(this);
+            return that.getElementsBy(
+                node => aa.inEnum(
+                    'button',
+                    'datalist',
+                    'input',
+                    'select',
+                    'textarea'
+                )(node.tagName.toLowerCase())
+                , thisArg
+            );
+            
+            return nodes;
+        },
         insertAtFirst:      function (newNode) {
             /**
              * parentNode.insertAtFirst(newNode);
