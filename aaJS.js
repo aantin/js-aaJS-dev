@@ -3679,38 +3679,6 @@
         },
         // Production steps, ECMA-262, Edition 5, 15.4.4.21
         // Référence : http://es5.github.io/#x15.4.4.21
-        reduce_X:             function (callback /*, initialValue */) {
-            "use strict";
-            
-            if (this === null) {
-                throw new TypeError('Array.reduce called on null or undefined');
-            }
-            if (typeof callback !== "function") {
-                throw new TypeError(callback + ' is not a fonction');
-            }
-            var t = Object(this),
-                len = t.length >>> 0,
-                k = 0,
-                value;
-            if (arguments.length == 2) {
-                value = arguments[1];
-            }
-            else {
-                while(k < len && !(k in t)) {
-                    k++;
-                }
-                if (k >= len) {
-                    throw new TypeError('Réduction de tableau vide sans valeur initiale');
-                }
-                value = t[k++];
-            }
-            for(; k < len; k++) {
-                if (k in t) {
-                    value = callback(value, t[k], k, t);
-                }
-            }
-            return value;
-        },
         reduce:             function (callback /*, accumulator, thisArg */) {
             "use strict";
             
