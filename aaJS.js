@@ -27,7 +27,8 @@
                 }), `'spec'`);
                 spec.sprinkle({get, set});
 
-                const keys = spec.get(this, `accessors-${JS.accessors.id}`);
+                const id = `accessors-${JS.accessors.id}`;
+                const keys = spec.get(this, id);
 
                 return keys ? keys.slice() : [];
             },
@@ -38,10 +39,11 @@
                 }), `'spec'`);
                 spec.sprinkle({get, set});
 
-                if (!spec.get(this, `accessors-${JS.accessors.id}`)) {
-                    spec.set(this, `accessors-${JS.accessors.id}`, []);
+                const id = `accessors-${JS.accessors.id}`;
+                if (!spec.get(this, id)) {
+                    spec.set(this, id, []);
                 }
-                spec.get(this, `accessors-${JS.accessors.id}`).pushUnique(key);
+                spec.get(this, id).pushUnique(key);
             }
         }
     };
@@ -1524,6 +1526,25 @@
                             break;
                     }
                 });
+            });
+        },
+        definePrivateMethods:       function (methods, spec={}) {
+            aa.arg.test(methods, aa.isObjectOfFunctions, "'methods'");
+            aa.arg.test(spec, aa.verifyObject({
+                get: aa.isFunction,
+                set: aa.isFunction,
+            }), "'spec'");
+            spec.sprinkle({
+                get,
+                set
+            });
+
+            methods.forEach((callback, name) => {
+                // Save key:
+                JS.accessors.saveKey.call(this, name, {get: spec.get, set: spec.set});
+
+                // Initialize value:
+                spec.set(this, name, callback.bind(this));
             });
         },
         getAccessor:                function (/* spec */) {
