@@ -4266,6 +4266,7 @@
                     }
                 }
             });
+            return this;
         },
         toSortedArray:      function () {
             /**
