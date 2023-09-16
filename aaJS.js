@@ -775,6 +775,13 @@
                 return (items.indexOf(item) > -1);
             };
         },
+        instanceof:                 function (Instance) {
+            aa.arg.test(Instance, aa.isFunction, "'Instance'");
+            
+            return function (arg) {
+                return arg instanceof Instance
+            };
+        },
         inbetween:                  function (value, min, max){
             return (
                 aa.isNumber(value)
