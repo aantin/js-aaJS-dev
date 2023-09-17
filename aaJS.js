@@ -777,7 +777,7 @@
         },
         instanceof:                 function (Instance) {
             aa.arg.test(Instance, aa.isFunction, "'Instance'");
-            
+
             return function (arg) {
                 return arg instanceof Instance
             };
@@ -3203,6 +3203,98 @@
                 }
             }
             return str;
+        },
+        /**
+         * Explode it into an Array. Every character other than [a-zA-Z0-9] characters are rejected.
+         * @return {String[]}
+         */
+        splitFromCasing:      function () {
+            let currentWord = '';
+            const words = [];
+            this.forEach(char => {
+                if (!char.match(/[a-z0-9]/)) {
+                    if (currentWord.length) {
+                        words.push(currentWord);
+                        currentWord = '';
+                    }
+                }
+                if (char.match(/[a-zA-Z0-9]/)) {
+                    currentWord += char;
+                }
+            });
+            if (currentWord.length) {
+                words.push(currentWord);
+            }
+            return words;
+        },
+        /**
+         * Return a variableNameLike String in camel case.
+         * 
+         * @return {String}
+         */
+        toCamelCase:            function () {
+            return (
+                this.splitFromCasing()
+                .map(word => word.toLowerCase().firstToUpper())
+                .join('')
+                .firstToLower()
+            );
+        },
+        /**
+         * Return a variable-name-like String in camel case.
+         * 
+         * @param {Object} [options] - Some options
+         * @param {Boolean} [options.upper=false] - If given, turns the output to upper (if true) or lower (if false, by default) case.
+         * 
+         * @return {String}
+         */
+        toKebabCase:            function (options={}) {
+            aa.arg.test(options, aa.verifyObject({
+                upper: aa.isBool,
+            }), "'options'");
+            options.sprinkle({
+                upper: false
+            });
+            
+            return (
+                this.splitFromCasing()
+                .map(word => word[options.upper ? 'toUpperCase' : 'toLowerCase']())
+                .join('-')
+            );
+        },
+        /**
+         * Return a VariableNameLike String in camel case.
+         * 
+         * @return {String}
+         */
+        toPascalCase:           function () {
+            return (
+                this.splitFromCasing()
+                .map(word => word.toLowerCase().firstToUpper())
+                .join('')
+            );
+        },
+        /**
+         * Return a variable_name_like String in snake case.
+         * 
+         * @param {Object} [options] - Some options
+         * @param {Boolean} [options.upper=false] - If given, turns the output to upper (if true) or lower (if false, by default) case.
+         * 
+         * @return {String}
+         */
+        toSnakeCase:            function (options={}) {
+            aa.arg.test(options, aa.verifyObject({
+                upper: aa.isBool,
+            }), "'options'");
+            options.sprinkle({
+                upper: false
+            });
+
+            return (
+                this.splitFromCasing()
+                .map(word => word[options.upper ? 'toUpperCase' : 'toLowerCase']())
+                .join('_')
+            );
         },
         // ----------------------------------------------------------------
         filter: function (callback /*, thisArg */) {
