@@ -17,6 +17,20 @@
         console.warn(message);
         return undefined;
     };
+    function addReadonlyProperties (obj, spec) {
+        aa.arg.test(spec, aa.isObject, "'spec'");
+        aa.arg.test(obj, aa.isFunction, "'obj'");
+
+        Object.keys(spec)
+        .filter(key => spec.hasOwnProperty(key))
+        .forEach(key => {
+            Object.defineProperty(obj, key, {
+                get: () => spec[key]
+            });
+        });
+
+        return obj;
+    }
     const JS = {
         accessors: {
             id: null,
@@ -507,10 +521,11 @@
                 if (!aa.isFunction(tester) && !aa.isBool(tester)) { throw new TypeError("Second argument must be a Function."); }
 
                 let i;
-                const argv = [];
-                for (i=2; i<arguments.length; i++) {
-                    argv.push(arguments[i]);
-                }
+                // const argv = [];
+                // for (i=2; i<arguments.length; i++) {
+                //     argv.push(arguments[i]);
+                // }
+                const argv = Array.from(arguments).slice(2);
                 const position = argv.find(aa.isPositiveInt);
                 const message = argv.find(aa.nonEmptyString) || "invalid";
 
@@ -535,31 +550,17 @@
 
                 if (aa.isBool(tester) && !tester) {
                     throw new TypeError(writeMessage(position, message));
+                    return false;
                 } else if (aa.isFunction(tester) && !tester(arg)) {
-                    const testers = {
-                        'must be an Object': aa.isObject,
-                        'must be an Array': aa.isArray,
-                        'must be an Array of Strings': aa.isArrayOfStrings,
-                        'must be an Array of Functions': aa.isArrayOfFunctions,
-                        'must be a Function': aa.isFunction,
-                        'must be a String': aa.isString,
-                        'must be a non-empty String': aa.nonEmptyString,
-                        'must be an Integer': aa.isInt,
-                        'must be a Number': aa.isNumber,
-                        'must be a positive Integer': aa.isPositiveInt,
-                    };
-                    const text = testers.reduce((acc, func, key) => {
-                        if (tester === func) {
-                            acc = key;
-                        }
-                        return acc;
-                    }, null);
+                    const text = tester.label ? `must be ${tester.label}`: null;
                     if (text) {
                         throw new TypeError(writeMessage(position, text));
                     } else {
                         throw new TypeError(writeMessage(position, message));
                     }
+                    return false;
                 }
+                return true;
             }
         })
     }, {force: true});
@@ -770,23 +771,38 @@
         inArray:                    function (list) {
             aa.arg.test(list, aa.isArray, "'list'");
 
-            return function (item) {
-                return (list.indexOf(item) > -1);
-            };
+            return addReadonlyProperties(
+                function (item) {
+                    return (list.indexOf(item) > -1);
+                },
+                {
+                    label: `an item in the given Array`
+                },
+            );
         },
         inEnum:                     function (...items) {
             aa.arg.test(items, aa.isArrayOfNonEmptyStrings, "'items'");
 
-            return function (item) {
-                return (items.indexOf(item) > -1);
-            };
+            return addReadonlyProperties(
+                function (item) {
+                    return (items.indexOf(item) > -1);
+                },
+                {
+                    label: `a String in the given enumerated list`
+                },
+            );
         },
-        instanceof:                 function (Instance) {
-            aa.arg.test(Instance, aa.isFunction, "'Instance'");
+        instanceof:                 function (Instancer) {
+            aa.arg.test(Instancer, aa.isFunction, "'Instancer'");
 
-            return function (arg) {
-                return arg instanceof Instance
-            };
+            return addReadonlyProperties(
+                function (arg) {
+                    return arg instanceof Instancer
+                },
+                {
+                    label: `an instance of ${Instancer.name ?? "the given Function"}`
+                },
+            );
         },
         inbetween:                  function (value, min, max){
             return (
@@ -1012,10 +1028,17 @@
                 )
             );
         },
-        isArrayOf:                  function (callback) {
-            return function (list) {
-                return aa.isArray(list) && list.every(callback);
-            };
+        isArrayOf:                  function (verifierFunction) {
+            aa.arg.test(verifierFunction, aa.isFunction, "'verifierFunction'");
+
+            return addReadonlyProperties(
+                function (list) {
+                    return aa.isArray(list) && list.every(verifierFunction);
+                },
+                {
+                    label: `an Array in which every item must ${verifierFunction.label ? `be ${verifierFunction.label}` : (verifierFunction.name ? `verify <${verifierFunction.name}>` : "verify the given Function")}`
+                },
+            );
         },
         isArrayOfFunctions:         function (a){
 
@@ -1085,10 +1108,15 @@
         isObject:                   function (param){
             return (typeof param === 'object' && param !== null && !Array.isArray(param));
         },
-        isObjectOf:                 function (callback) {
-            return function (collection) {
-                return aa.isObject(collection) && collection.every(callback);
-            };
+        isObjectOf:                 function (verifierFunction) {
+            return addReadonlyProperties(
+                function (collection) {
+                    return aa.isObject(collection) && collection.every(verifierFunction);
+                },
+                {
+                    label: `an Object whose every property must ${verifierFunction.label ? `be ${verifierFunction.label}` : (verifierFunction.name ? `verify <${verifierFunction.name}>` : "verify the given Function")}`
+                },
+            );
         },
         isObjectOfFunctions:        function (o){
             return (
@@ -1130,9 +1158,14 @@
             );
         },
         isStringMatch:              function (pattern) {
-            return function (str) {
-                return aa.isString(str) && !!str.match(pattern);
-            };
+            return addReadonlyProperties(
+                function (str) {
+                    return aa.isString(str) && !!str.match(pattern);
+                },
+                {
+                    label: `a String that match the given pattern`
+                },
+            );
         },
         nonEmptyString:             function (str) {
             return (
@@ -1471,7 +1504,12 @@
                 options.strict = strict;
             }
 
-            return arg => aa.isObject(arg) && arg.verify(model, options);
+            return addReadonlyProperties(
+                arg => aa.isObject(arg) && arg.verify(model, options),
+                {
+                    label: `an Object which every key match the given model Object`
+                },
+            );
         },
         walkTheDOM:                 function (node,func){
             /**
@@ -3489,26 +3527,57 @@
         hasKeyObject:       function (param){
             return (typeof this[param] !== 'undefined' && aa.isObject(this[param]));
         },
-        joinNatural:        function (spec={}) {
-            aa.arg.test(spec, aa.verifyObject({
+        /**
+         * Return a String joining every elements in a natural way.
+         * 
+         * Example: 
+         *      const list = ['A', 'B', 'C', 'D'];
+         *      list.joinNatural(); // A, B, C & D
+         *      list.joinNatural({default: ";"}); // A; B; C & D
+         *      list.joinNatural({last: "and"}); // A, B, C and D
+         *      list.joinNatural({tag: "'"}); // 'A', 'B', 'C' & 'D'
+         *      list.joinNatural({tag: "'"}); // 'A', 'B', 'C' & 'D'
+         * 
+         * @param {object} [options] - An object defining options
+         * @param {string} [options.default] - The default delimiter
+         * @param {string} [options.last] - The last delimiter. If there are only two words, they will be separated by this value.
+         * @param {string} [options.tag] - A String that will be used as both start and end boundaries on each elemnt of the Array on which the method is called.
+         * @param {string[]} [options.tags] - An Array containing two String elements that will be used as start and end boundaries on each elemnt of the Array on which the method is called.
+         * 
+         * @return {string}
+         */
+        joinNatural:        function (options={}) {
+            aa.arg.test(options, aa.verifyObject({
                 default:    aa.isString,
                 last:       aa.isString,
-            }), "'spec'");
-            spec.sprinkle({
+                tag:        aa.isString,
+                tags:       arg => aa.isArrayOfStrings(arg) && arg.length === 2,
+            }), "'options'");
+            options.sprinkle({
                 default: ', ',
                 last: ' & ',
+                tags: ["", ""]
             });
+            if (options.hasOwnProperty('tag')) {
+                options.tags = [options.tag, options.tag];
+            }
 
             if (this.length > 1) {
                 const last = this.last;
                 const firstItems = this.slice(0, -1)
                 
                 return [
-                    firstItems.join(spec.default),
-                    last
-                ].join(spec.last);
+                    firstItems
+                    .map(item => `${options.tags[0]}${item}${options.tags[1]}`)
+                    .join(options.default),
+                    `${options.tags[0]}${last}${options.tags[1]}`
+                ].join(options.last);
             }
-            return this.join(spec.default);
+            return (
+                this
+                .map(item => `${options.tags[0]}${item}${options.tags[1]}`)
+                .join(options.default)
+            );
         },
         pushUnique:         function (item) {
             if (this.indexOf(item) < 0) {
@@ -4462,7 +4531,7 @@
                     return acc;
                 }, []);
                 if (mandatoryKeys.length && !options.silent) {
-                    warn(`The Object must have ${mandatoryKeys.length == 1 ? 'a ' : ''}${mandatoryKeys.joinNatural()} key${mandatoryKeys.length > 1 ? 's' : ''}.`);
+                    warn(`The Object must have ${mandatoryKeys.length == 1 ? 'a ' : ''}${mandatoryKeys.joinNatural({tag: "'"})} key${mandatoryKeys.length > 1 ? 's' : ''}.`);
                 }
             }
             aa.arg.test(model, model.every(v => aa.isFunction(v)), 0, "must be an Object of Functions only");
@@ -4474,7 +4543,7 @@
                 return err;
             },[]);
             if (err.length && !options.silent) {
-                warn(`The Object contains invalid key${err.length>1?'s':''} (${err.join(', ')})`);
+                warn(`The Object contains invalid key${err.length>1?'s':''} (${err.joinNatural({tag: "'"})})`);
             }
             
             return err.length === 0;
@@ -4669,6 +4738,52 @@
             return this.filter((v, k)=>{ return !keys.has(k); });
         }
     }, {force: true});
+
+    // Set a label to some functions:
+    (() => {
+        const labeledFunctions = {
+            any: "of any type",
+            inArray: "an item in the given Array",
+            inEnum: "a value in the enumerated list",
+            instanceof: "an instance",
+            inbetween: "a Number within the given boundaries",
+            inbetweenStrict: "a Number within the given boundaries excluded",
+            isArray: "an Array",
+            isArrayLike: "an Array-like",
+            isArrayOfFunctions: "an Array of Functions",
+            isArrayOfNumbers: "an Array of Numbers",
+            isArrayOfStrings: "an Array of Strings",
+            isBool: "a Boolean",
+            isDom: null,
+            isElement: "a DOM Element",
+            isFile: "a File",
+            isFloat: "a float Number",
+            isFunction: "a Function",
+            isInt: "an Integer",
+            isNode: "a node Element",
+            isArrayOfNonEmptyStrings: "an Array of non-empty Strings",
+            isNullOrNonEmptyString: "null or a non-empty String",
+            isNumber: "a Number",
+            isNumeric: "numeric",
+            isObject: "an Object that is not an Array",
+            isObjectOfFunctions: "an Object of Functions",
+            isObjectOfStrings: "an Object of Strings",
+            isObjectOfObjects: "an Object of Objects",
+            isPositiveInt: "a positive Integer",
+            isPositiveNumber: "a positive Number",
+            isStrictlyPositiveInt: "a strictly positive Integer",
+            isStrictlyPositiveNumber: " a strictly positive Number",
+            isRegExp: "a Regular Expression",
+            isString: "a String",
+            nonEmptyString: "a non-empty String",
+            verifyObject: null,
+        };
+        labeledFunctions.forEach((label, functionName) => {
+            if (label && aa.hasOwnProperty(functionName) && aa.isFunction(aa[functionName])) {
+                addReadonlyProperties(aa[functionName], {label});
+            }
+        });
+    })();
 
     // IMAGE functions:
     aa.deploy(Image.prototype, {
