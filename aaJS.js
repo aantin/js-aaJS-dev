@@ -485,15 +485,21 @@
             }
         }),
         arg: Object.freeze({
-            optional:    function (args, i, defaultValue /*, condition */) {
+            optional:    function (args, index, defaultValue /*, condition=()=>true, strict=false */) {
+
                 const condition = arguments && arguments.length > 3 ? arguments[3] : () => true;
+                const strict = arguments && arguments.length > 4 ? arguments[4] : false;
 
-                if (!aa.isArrayLike(args)) { throw new TypeError("First argument must be an Array."); }
-                if (!aa.isPositiveInt(i)) { throw new TypeError("Second argument must be a positive Integer."); }
-                if (!aa.isFunction(condition)) { throw new TypeError("Fourth argument must be a Function."); }
+                if (!aa.isArrayLike(args)) {        throw new TypeError("First argument (args) must be an Array-like."); }
+                if (!aa.isPositiveInt(index)) {         throw new TypeError("Second argument (index) must be a positive Integer."); }
+                if (!aa.isFunction(condition)) {    throw new TypeError("Fourth argument (condition) must be a Function."); }
+                if (!aa.isBool(strict)) {           throw new TypeError("Fifth argument (strict) must be a Boolean."); }
 
-                return (args.length > i && condition(args[i]) ?
-                    args[i]
+                const isVerified = args.length > index ? condition(args[index]) : false;
+                if (!aa.isBool(isVerified)) { throw new TypeError("Fourth argument (condition) must be Function that must return a Boolean."); }
+
+                return (isVerified ?
+                    args[index]
                     : defaultValue
                 );
             },
@@ -1421,10 +1427,51 @@
             // return param;
             return window.btoa(unescape(encodeURIComponent(param)));
         },
-        verifyObject:               function (spec /*, strict=false */) {
-            aa.arg.test(spec, aa.isObject, `'spec'`);
-            const strict = arguments.length > 1 && aa.isBool(arguments[1]) ? arguments[1] : false;
-            return arg => aa.isObject(arg) && arg.verify(spec, strict);
+        /**
+         * A factory that returns a Function to verify if the future given argument's properties will match each property of a model.
+         * 
+         * Usage:
+         * // simple call, with no option:
+         * aa.verifyObject({
+         *      aPropertyName: aFunctionThatMustReturnABoolean
+         * })(theObjectToVerify);
+         * 
+         * // call with 'strict' option:
+         * aa.verifyObject({
+         *      aPropertyName: aFunctionThatMustReturnABoolean
+         *      anotherPropertyName: anotherFunctionThatMustReturnABoolean
+         * }, true)(theObjectToVerify);
+         * 
+         * // call with options:
+         * aa.verifyObject({
+         *      aPropertyName: aFunctionThatMustReturnABoolean
+         *      anotherPropertyName: anotherFunctionThatMustReturnABoolean
+         * }, {
+         *      silent: true,
+         *      strict: true,
+         * })(theObjectToVerify);
+         * 
+         * @param      {object} model - An Object of Functions that will be used to verify every property of the future given argument passed to the returned Function.
+         * @param {bool|ojbect} [strict=false|options] - If a Boolean is passed, executes in strict mode (true) or not (false by default). If an Object is passed, it will be used as options.
+         * @param        {bool} [options.silent] - Executes in silent mode (true) or not (false by default).
+         * @param        {bool} [options.strict] - Executes in strict mode (true) or not (false by default).
+         * 
+         * @return {function}
+         */
+        verifyObject:               function (model /*, strict=false */) {
+            aa.arg.test(model, aa.isObject, `'model'`);
+            const strict = aa.arg.optional(arguments, 1, false, aa.isBool);
+            const options = aa.arg.optional(arguments, 1, {}, arg =>
+                aa.isObject(arg)
+                && Object.keys(arg).every(key => ['strict', 'silent'].has(key) && aa.isBool(arg[key]))
+            );
+            options.strict ??= false;
+            options.silent ??= false;
+            if (strict) {
+                options.strict = strict;
+            }
+
+            return arg => aa.isObject(arg) && arg.verify(model, options);
         },
         walkTheDOM:                 function (node,func){
             /**
@@ -2662,6 +2709,8 @@
                 throw new ErrorClass(message);
             }
         },
+    }, {force: true});
+    aa.deploy(aa, {
         uid:                        (function () {
             let x = 0;
             return function (length=null /*, spec={} */) {
@@ -3563,8 +3612,10 @@
         verify:             function (callback){
             if (!aa.isFunction(callback)) { throw new TypeError("Argument must be a Function."); }
 
-            return (this.filter((item)=>{
-                return !callback(item);
+            return (this.filter(item => {
+                const isVerified = callback(item);
+                if (!aa.isBool(isVerified)) {  throw new TypeError("Argument must be a Function that must return a Boolean.");  }
+                return !isVerified;
             }).length !== 0);
             // return this.every(callback);
         },
@@ -4383,35 +4434,47 @@
                 }, [[], []])
             );
         },
-        verify:             function (dict /*, strict */) {
-            /**
-             * @param {object} dict
-             * @param {bool} strict (optional)
-             *
-             * @return {boolean}
-             */
+        /**
+         * Verify if each of this Object properties matches each property of a given model Object.
+         * 
+         * @param {object} model
+         * @param {bool|object} [strict=false|options] - If a Boolean is passed, executes in strict mode (true) or not (false by default). If an Object is passed, it will be used as options.
+         * @param        {bool} [options.silent] - Execute in silent mode (true) or not (false by default.
+         * @param        {bool} [options.strict] - Execute in strict mode (true) or not (false by default.
+         *
+         * @return {boolean}
+         */
+        verify:             function (model /*, strict */) {
             const strict = aa.arg.optional(arguments, 1, false, aa.isBool);
-            if (strict) {
-                const found = dict.reduce((acc, v, k) => {
+            const options = aa.arg.optional(arguments, 1, {}, arg =>
+                aa.isObject(arg)
+                && Object.keys(arg).every(key => ['strict', 'silent'].has(key) && aa.isBool(arg[key]))
+            );
+            options.silent ??= false;
+            options.strict ??= strict;
+
+            // Main:
+            if (options.strict) {
+                const mandatoryKeys = model.reduce((acc, v, k) => {
                     if (!this.hasOwnProperty(k)) {
                         acc.push(k);
                     }
                     return acc;
                 }, []);
-                if (found.length) {
-                    cease(`Object must have ${found.length == 1 ? 'a ' : ''}'${found.join("', '")}' key${found.length > 1 ? 's' : ''}.`);
+                if (mandatoryKeys.length && !options.silent) {
+                    warn(`The Object must have ${mandatoryKeys.length == 1 ? 'a ' : ''}${mandatoryKeys.joinNatural()} key${mandatoryKeys.length > 1 ? 's' : ''}.`);
                 }
             }
-            aa.arg.test(dict, dict.every((v, k) => aa.isFunction(v)), 0, "must be an Object of Functions only");
+            aa.arg.test(model, model.every(v => aa.isFunction(v)), 0, "must be an Object of Functions only");
 
             const err = this.reduce((err, v, k)=>{
-                if (!dict.hasOwnProperty(k) || !dict[k](v)) {
+                if (!model.hasOwnProperty(k) || !model[k](v)) {
                     err.push(k);
                 }
                 return err;
             },[]);
-            if (err.length) {
-                console.warn("The Object contains invalid key"+(err.length>1?'s':'')+" ("+err.join(", ")+").");
+            if (err.length && !options.silent) {
+                warn(`The Object contains invalid key${err.length>1?'s':''} (${err.join(', ')})`);
             }
             
             return err.length === 0;
