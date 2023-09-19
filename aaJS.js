@@ -145,7 +145,7 @@
                             Array.from(document.getElementsByTagName(tag))
                             .forEach(node => {
                                 if ((id ? (id && node.id && node.id === id) : true)
-                                    && (tokens.classes.length > 0 ? (tokens.classes.every(cls => node.classList.contains(cls))) : true)
+                                    && (classes.length > 0 ? (classes.every(cls => node.classList.contains(cls))) : true)
                                 ) {
                                     nodes.push(node);
                                 }
@@ -1015,6 +1015,7 @@
         isArrayLike:                function (list) {
             return (
                 Array.isArray(list) || 
+                typeof list === "string" || 
                 (
                     typeof list === "object"
                     && typeof (list.length) === "number"
