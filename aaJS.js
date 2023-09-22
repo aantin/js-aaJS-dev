@@ -1508,7 +1508,7 @@
             return addReadonlyProperties(
                 arg => aa.isObject(arg) && arg.verify(model, options),
                 {
-                    label: `an Object which every key match the given model Object`
+                    label: `an Object which every properties match the given model Object`
                 },
             );
         },
