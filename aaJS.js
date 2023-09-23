@@ -3047,6 +3047,27 @@
         }
     });
     aa.deploy(Number.prototype, {
+        /**
+         * Return the minimum or maximum of the given boundaries if the actual Number is out of range.
+         * 
+         * @param {number} min
+         * @param {number} max
+         * 
+         * @return {number}
+         */
+        bound:          function (min, max) {
+            aa.arg.test(min, aa.isNumber, "'min'");
+            aa.arg.test(max, aa.isNumber, "'max'");
+            
+            const value = this+0;
+            return (value < min ?
+                min
+                : (value > max ?
+                    max
+                    : value
+                )
+            );
+        },
         normalize:      function (origRange, destRange) {
             const value = this+0;
             const min = origRange[0];
