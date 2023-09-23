@@ -1029,6 +1029,18 @@
                 )
             );
         },
+        isArrayLikeOf:              function (verifierFunction) {
+            aa.arg.test(verifierFunction, aa.isFunction, "'verifierFunction'");
+
+            return addReadonlyProperties(
+                function (list) {
+                    return aa.isArrayLike(list) && list.every(verifierFunction);
+                },
+                {
+                    label: `an Array-like in which every item must ${verifierFunction.label ? `be ${verifierFunction.label}` : (verifierFunction.name ? `verify <${verifierFunction.name}>` : "verify the given Function")}`
+                },
+            );
+        },
         isArrayOf:                  function (verifierFunction) {
             aa.arg.test(verifierFunction, aa.isFunction, "'verifierFunction'");
 
