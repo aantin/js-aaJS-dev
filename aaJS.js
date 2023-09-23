@@ -7,7 +7,7 @@
     const versioning = {
         aaJS: {
             version: {
-                version: "3.0",
+                version: "3.1",
                 dependencies: {}
             }
         }
@@ -3058,7 +3058,7 @@
         bound:          function (min, max) {
             aa.arg.test(min, aa.isNumber, "'min'");
             aa.arg.test(max, aa.isNumber, "'max'");
-            
+
             const value = this+0;
             return (value < min ?
                 min
