@@ -570,15 +570,28 @@
                 node.innerHTML += html;
             });
         },
-        addScriptToDOM:             function (path) {
-            if (path && aa.nonEmptyString(path)) {
+        addScriptToDOM:             (function () {
+            const charsets = ['utf-8']; // First item will be used by default
+
+            return function (path, options={}) {
+                aa.arg.test(path, aa.nonEmptyString, "'path'");
+                aa.arg.test(options, aa.verifyObject({
+                    charset: aa.inArray(charsets),
+                }), "'options'");
+
+                // Default options:
+                options.sprinkle({
+                    charset: charsets.first
+                });
+
+                // Main:
                 path = path.trim();
                 const script = document.createElement("script");
-                script.setAttribute("charset", "utf-8");
+                script.setAttribute("charset", options.charset);
                 script.src = path;
-                document.head.appendChild(script);
-            }
-        },
+                document.head?.appendChild(script);
+            };
+        })(),
         addStyleToScript:           function (scriptFilename, styleFilename) {
             const path = aa.findPathOf(scriptFilename);
             if (path) {
