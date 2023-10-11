@@ -1612,6 +1612,7 @@
                     const getter = () => {
                         return spec.getter(this, key);
                     };
+                    Object.defineProperty(getter, 'name', {get: () => `get${key.firstToUpper()}`});
                     const setter = value => {
                         const setterName = 'set'+key.firstToUpper();
                         if (typeof this[setterName] === 'function') {
@@ -1620,6 +1621,8 @@
                             console.warn("Setter '"+key+"' not implemented.");
                         }
                     };
+                    Object.defineProperty(setter, 'name', {get: () => `set${key.firstToUpper()}`});
+
                     switch (accessor) {
                         case 'publics':
                             Object.defineProperty(this, key, {
