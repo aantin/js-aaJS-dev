@@ -7,7 +7,7 @@
     const versioning = {
         aaJS: {
             version: {
-                version: "3.1.1",
+                version: "3.1.2",
                 dependencies: {}
             }
         }
@@ -663,13 +663,13 @@
             if (!aa.nonEmptyString(name)) { throw new TypeError("Argument must be a non-empty String."); }
             console.warn("Deprecated: '"+name.trim()+"'. This feature is no longer recommended. Avoid using it, and update existing code if possible.");
         },
-        digit:                      function (param,digits) {
+        digit:                      function (param, digits) {
             var i;
-            if (!aa.isInt(digits) || !aa.isInt(digits)) {
+            if (!aa.isInt(digits)) {
                 return param;
             }
             param += '';
-            for(i=param.length; i<aa.digits; i++) {
+            for(i=param.length; i<digits; i++) {
                 param = '0'+param;
             }
             return param;
@@ -1377,7 +1377,7 @@
                     const len = aParts.length > bParts.length ? bParts.length : aParts.length;
 
                     // If first parts are from different types:
-                    if (!!aParts[0].match(aa.digits) !== !!bParts[0].match(aa.digits)) {
+                    if (!!aParts[0].match(digits) !== !!bParts[0].match(digits)) {
                         return (
                             a < b
                             ? -1
@@ -1392,7 +1392,7 @@
                             let _b = bParts[i];
 
                             if (_a !== _b) {
-                                if (_a.match(aa.digits) && !!_a.match(aa.digits) && !!_b.match(aa.digits)) {
+                                if (_a.match(digits) && !!_a.match(digits) && !!_b.match(digits)) {
                                     const hiraganas = ['０', '１', '２', '３', '４', '５', '６', '７', '８', '９'];
                                     hiraganas.forEach((kana, i)=>{
                                         _a = _a.replace(new RegExp(kana, "g"), i);
@@ -1426,9 +1426,8 @@
                         return res;
                     }
                 } else {
-                    return (
-                        a < b
-                        ? -1
+                    return (a < b ?
+                        -1
                         : 1
                     );
                 }
