@@ -1070,6 +1070,9 @@
 
             return (aa.isArray(a) && a.reduce((ok, v)=>{ return (!aa.isFunction(v) ? false : ok); }, true));
         },
+        isArrayOfNonEmptyStrings:   function (list) {
+            return aa.isArray(list) && list.every(aa.nonEmptyString);
+        },
         isArrayOfNumbers:           function (a){
 
             return (aa.isArray(a) && a.every(v => aa.isNumber(v)));
@@ -1116,9 +1119,6 @@
                 ? o instanceof Node
                 : o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
             );
-        },
-        isArrayOfNonEmptyStrings:   function (list) {
-            return aa.isArray(list) && list.every(aa.nonEmptyString);
         },
         isNullOrNonEmptyString:     v => (v === null || aa.nonEmptyString(v)),
         isNumber:                   function (param){
