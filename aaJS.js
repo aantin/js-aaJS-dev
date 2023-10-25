@@ -7,7 +7,7 @@
     const versioning = {
         aaJS: {
             version: {
-                version: "3.1.2",
+                version: "3.2.0",
                 dependencies: {}
             }
         }
@@ -17,19 +17,19 @@
         console.warn(message);
         return undefined;
     };
-    function addReadonlyProperties (obj, spec) {
+    function addReadonlyProperties (func, spec) {
+        aa.arg.test(func, aa.isFunction, "'func'");
         aa.arg.test(spec, aa.isObject, "'spec'");
-        aa.arg.test(obj, aa.isFunction, "'obj'");
 
         Object.keys(spec)
         .filter(key => spec.hasOwnProperty(key))
         .forEach(key => {
-            Object.defineProperty(obj, key, {
+            Object.defineProperty(func, key, {
                 get: () => spec[key]
             });
         });
 
-        return obj;
+        return func;
     }
     const JS = {
         accessors: {
@@ -1121,6 +1121,7 @@
             );
         },
         isNullOrNonEmptyString:     v => (v === null || aa.nonEmptyString(v)),
+        isNullOrInt:                v => (v === null || Number.isInteger(v)),
         isNumber:                   function (param){
             return (
                 typeof param === "number"
