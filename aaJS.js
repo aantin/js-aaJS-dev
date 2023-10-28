@@ -7,7 +7,7 @@
     const versioning = {
         aaJS: {
             version: {
-                version: "3.2.0",
+                version: "3.3.0",
                 dependencies: {}
             }
         }
@@ -1119,6 +1119,17 @@
                 ? o instanceof Node
                 : o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
             );
+        },
+        isNullOr:                   function (func) {
+            aa.arg.test(func, aa.isFunction, "'func'");
+            return function (param) {
+                if (param === null)
+                    return true;
+                const isVerified = func(param);
+                if (!aa.isBool(isVerified))
+                    throw new TypeError("The provided Function must return a Boolean.");
+                return isVerified;
+            };
         },
         isNullOrNonEmptyString:     v => (v === null || aa.nonEmptyString(v)),
         isNullOrInt:                v => (v === null || Number.isInteger(v)),
@@ -4812,6 +4823,7 @@
             isInt: "an Integer",
             isNode: "a node Element",
             isArrayOfNonEmptyStrings: "an Array of non-empty Strings",
+            isNullOr: "null or verify the callback Function",
             isNullOrNonEmptyString: "null or a non-empty String",
             isNumber: "a Number",
             isNumeric: "numeric",
