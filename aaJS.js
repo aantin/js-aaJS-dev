@@ -4181,7 +4181,7 @@
             return this;
         },
         clone:              function () {
-            var o;
+            let o;
             if (
                 this === null
                 || this === undefined
