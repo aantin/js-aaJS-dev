@@ -3087,13 +3087,7 @@
             aa.arg.test(max, aa.isNumber, "'max'");
 
             const value = this+0;
-            return (value < min ?
-                min
-                : (value > max ?
-                    max
-                    : value
-                )
-            );
+            return value < min ? min : value > max ? max : value;
         },
         normalize:      function (origRange, destRange) {
             const value = this+0;
@@ -4348,7 +4342,6 @@
             }
         },
         hasKey:             function (param) {
-
             return this[param] !== undefined;
         },
         hasKeyString:       function (param){
