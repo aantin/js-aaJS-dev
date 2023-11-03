@@ -4397,7 +4397,7 @@
             
             return Object.keys(this);
         },
-        map:                function (callback /*, thisArg*/) {
+        map:                function (callback, context=undefined, ownPropertyNames=false) {
             /*
              * How to use:
                 obj.map(function (value, key[, item]) {
@@ -4405,17 +4405,17 @@
                 });
             */
             if (this == null) { throw new TypeError("Object.map called on null or undefined"); }
-            if (typeof callback !== "function") { throw new TypeError(callback + " is not a fonction"); }
+            aa.arg.test(callback, aa.isFunction, "'callback'");
+            aa.arg.test(ownPropertyNames, aa.isBool, "'ownPropertyNames'");
 
             const that = Object(this);
             const o = new Object();
-            const thisArg = arguments && arguments.length > 1 ? arguments[1] : undefined;
 
-            that.keys().forEach((k) => {
-                if (that.hasOwnProperty(k)) {
-                    const value = that[k];
-                    const mappedValue = callback.call(thisArg, value, k, that);
-                    o[k] = mappedValue;
+            Object[ownPropertyNames ? "getOwnPropertyNames" : "keys"](that).forEach(key => {
+                if (that.hasOwnProperty(key)) {
+                    const value = that[key];
+                    const mappedValue = callback.call(context, value, key, that);
+                    o[key] = mappedValue;
                 }
             });
             return o;
@@ -4774,11 +4774,33 @@
                             break;
                     }
                 }
-            } else {
-                console.warn("not an element.");
-            }
+            } else { console.warn("not an element."); }
         },
-        ignoreKeys:        function (...keys) {
+        findRising:         function (callback, context=undefined) {
+            aa.arg.test(callback, aa.isFunction, "'callback'");
+
+            let that = Object(this);
+            if (aa.isNode(that)) {
+                let parent = that.parentNode;
+                while (parent) {
+                    const isVerified = callback.call(context, parent);
+                    aa.throwErrorIf(
+                        !aa.isBool(isVerified),
+                        "The callback Function must return a Boolean."
+                    );
+                    if (isVerified) {
+                        return parent;
+                    }
+                    parent = parent.parentNode;
+                }
+
+            } else { console.warn("not an element node."); }
+            return undefined;
+        },
+        someRising:         function (callback, context=undefined) {
+            return (!!this.findRising(callback, context));
+        },
+        ignoreKeys:         function (...keys) {
             /**
              * @param <string[]> keys
              */
