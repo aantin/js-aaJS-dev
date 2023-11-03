@@ -7,7 +7,7 @@
     const versioning = {
         aaJS: {
             version: {
-                version: "3.1.2",
+                version: "3.3.0",
                 dependencies: {}
             }
         }
@@ -17,19 +17,19 @@
         console.warn(message);
         return undefined;
     };
-    function addReadonlyProperties (obj, spec) {
+    function addReadonlyProperties (func, spec) {
+        aa.arg.test(func, aa.isFunction, "'func'");
         aa.arg.test(spec, aa.isObject, "'spec'");
-        aa.arg.test(obj, aa.isFunction, "'obj'");
 
         Object.keys(spec)
         .filter(key => spec.hasOwnProperty(key))
         .forEach(key => {
-            Object.defineProperty(obj, key, {
+            Object.defineProperty(func, key, {
                 get: () => spec[key]
             });
         });
 
-        return obj;
+        return func;
     }
     const JS = {
         accessors: {
@@ -1070,6 +1070,9 @@
 
             return (aa.isArray(a) && a.reduce((ok, v)=>{ return (!aa.isFunction(v) ? false : ok); }, true));
         },
+        isArrayOfNonEmptyStrings:   function (list) {
+            return aa.isArray(list) && list.every(aa.nonEmptyString);
+        },
         isArrayOfNumbers:           function (a){
 
             return (aa.isArray(a) && a.every(v => aa.isNumber(v)));
@@ -1117,10 +1120,19 @@
                 : o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
             );
         },
-        isArrayOfNonEmptyStrings:   function (list) {
-            return aa.isArray(list) && list.every(aa.nonEmptyString);
+        isNullOr:                   function (func) {
+            aa.arg.test(func, aa.isFunction, "'func'");
+            return function (param) {
+                if (param === null)
+                    return true;
+                const isVerified = func(param);
+                if (!aa.isBool(isVerified))
+                    throw new TypeError("The provided Function must return a Boolean.");
+                return isVerified;
+            };
         },
         isNullOrNonEmptyString:     v => (v === null || aa.nonEmptyString(v)),
+        isNullOrInt:                v => (v === null || Number.isInteger(v)),
         isNumber:                   function (param){
             return (
                 typeof param === "number"
@@ -3075,13 +3087,7 @@
             aa.arg.test(max, aa.isNumber, "'max'");
 
             const value = this+0;
-            return (value < min ?
-                min
-                : (value > max ?
-                    max
-                    : value
-                )
-            );
+            return value < min ? min : value > max ? max : value;
         },
         normalize:      function (origRange, destRange) {
             const value = this+0;
@@ -4169,7 +4175,7 @@
             return this;
         },
         clone:              function () {
-            var o;
+            let o;
             if (
                 this === null
                 || this === undefined
@@ -4336,7 +4342,6 @@
             }
         },
         hasKey:             function (param) {
-
             return this[param] !== undefined;
         },
         hasKeyString:       function (param){
@@ -4833,6 +4838,7 @@
             isInt: "an Integer",
             isNode: "a node Element",
             isArrayOfNonEmptyStrings: "an Array of non-empty Strings",
+            isNullOr: "null or verify the callback Function",
             isNullOrNonEmptyString: "null or a non-empty String",
             isNumber: "a Number",
             isNumeric: "numeric",
