@@ -7,7 +7,7 @@
     const versioning = {
         aaJS: {
             version: {
-                version: "3.3.0",
+                version: "3.4.0",
                 dependencies: {}
             }
         }
@@ -805,15 +805,15 @@
                 },
             );
         },
-        instanceof:                 function (Instancer) {
-            aa.arg.test(Instancer, aa.isFunction, "'Instancer'");
+        instanceof:                 function (...Instancers) {
+            aa.arg.test(Instancers, aa.isArrayOfFunctions, "'Instancers'");
 
             return addReadonlyProperties(
                 function (arg) {
-                    return arg instanceof Instancer
+                    return Instancers.some(Instancer => arg instanceof Instancer);
                 },
                 {
-                    label: `an instance of ${Instancer.name ?? "the given Function"}`
+                    label: `an instance of ${Instancers.name ?? "the given Function"}`
                 },
             );
         },
@@ -1497,6 +1497,51 @@
             // return param;
             return window.btoa(unescape(encodeURIComponent(param)));
         },
+        verifyInterface:            function (spec={}) {
+            aa.arg.test(spec, aa.verifyObject({
+                attributes: aa.isObjectOfFunctions,
+                methods: aa.isArrayOfNonEmptyStrings,
+            }), "'spec'");
+            spec.sprinkle({
+                attributes: {},
+                methods: [],
+            });
+            const errors = {
+                attributes: [],
+                methods: [],
+            };
+            return function (Instancer) {
+                const areAttributesVerified = Object.keys(spec.attributes).every(attr => {
+                        const isVerified = spec.attributes[attr](Instancer[attr] ?? Instancer.prototype[attr]);
+                        if (!aa.isBool(isVerified)) throw new TypeError("Verifier Function must return a Boolean.");
+                        if (!isVerified) errors.attributes.pushUnique(attr);
+                        return isVerified;
+                    });
+                const areMethodsVerified = spec.methods.every(method => {
+                        const isVerified = aa.isFunction(Instancer[method] ?? Instancer.prototype?.[method]);
+                        if (!isVerified) errors.methods.pushUnique(method);
+                        return isVerified;
+                    });
+                const isVerified = (
+                    aa.isFunction(Instancer)
+                    && areAttributesVerified
+                    && areMethodsVerified
+                );
+                if (errors.attributes.length + errors.methods.length > 0) {
+                    const both = [];
+                    if (errors.attributes.length) {
+                        both.push(`attribute(s): '${errors.attributes.joinNatural()}'`);
+                    }
+                    if (errors.methods.length) {
+                        both.push(`method(s): '${errors.methods.joinNatural()}'`);
+                    }
+                    console.warn(`Invalid or missing interface ${both.joinNatural({
+                        last: "; "
+                    })}`);
+                }
+                return isVerified;
+            };
+        },
         /**
          * A factory that returns a Function to verify if the future given argument's properties will match each property of a model.
          * 
@@ -1637,12 +1682,14 @@
                     switch (accessor) {
                         case 'publics':
                             Object.defineProperty(this, key, {
+                                enumerable: true,
                                 get: getter,
                                 set: setter
                             });
                             break;
                         case 'read':
                             Object.defineProperty(this, key, {
+                                enumerable: true,
                                 get: getter
                             });
                             break;
@@ -1653,6 +1700,7 @@
                             break;
                         case 'execute':
                             Object.defineProperty(this, key, {
+                                enumerable: true,
                                 get: () => spec.getter(this, key).call(this)
                             });
                             break;
@@ -1679,17 +1727,17 @@
                 spec.set(this, name, callback.bind(this));
             });
         },
-        getAccessor:                function (/* spec */) {
-            const spec = aa.arg.optional(arguments, 0, {}, aa.verifyObject({
+        getAccessor:                function (spec={}) {
+            aa.arg.test(spec, aa.verifyObject({
                 get: aa.isFunction,
                 set: aa.isFunction
-            }));
+            }), "'spec'");
             const {get, set} = aa.mapFactory();
             spec.sprinkle({get, set});
             
             const that = {};
             const keys = JS.accessors.getKeys.call(this, {get: spec.get, set: spec.set});
-            const emit = (aa.event.getEmitter.call(this, spec.get, 'listeners')).bind(this);
+            // const emit = (aa.event.getEmitter.call(this, spec.get, 'listeners')).bind(this);
             keys.forEach(key => {
                 Object.defineProperty(that, key, {
                     get: () => spec.get(this, key),
@@ -2846,7 +2894,7 @@
         event: (() => {
             const id = aa.uid();
             return {
-                getEmitter:     function (accessor /*, key, spec */) {
+                getEmitter:     function (accessor, key=null, spec={} /*, key, spec */) {
                     /**
                      *  Usage:
                      *      const emit = getEmitter(get, "listeners");
@@ -2863,8 +2911,9 @@
                         get: aa.isFunction,
                         set: aa.isFunction,
                     })(arg)), `'accessor'`);
-                    const key = aa.arg.optional(arguments, 1, `listeners-${id}`, aa.nonEmptyString);
-                    const spec = aa.arg.optional(arguments, 2, {}, aa.verifyObject(aa.event.specs));
+                    key ??= `listeners-${id}`;
+                    aa.arg.test(key, aa.nonEmptyString, "'key'");
+                    aa.arg.test(spec, aa.verifyObject(aa.event.specs), "'spec'");
 
                     if (aa.isObject(accessor)) {
                         accessor.sprinkle({get, set});
@@ -5634,4 +5683,5 @@
     // ----------------------------------------------------------------
     JS.accessors.id = aa.uid();
     const {get, set} = aa.mapFactory();
+    // ----------------------------------------------------------------
 })();
