@@ -36,10 +36,11 @@
             id: null,
             getKeys:    function (spec={}) {
                 aa.arg.test(spec, aa.verifyObject({
+                    cut: aa.isFunction,
                     get: aa.isFunction,
                     set: aa.isFunction,
                 }), `'spec'`);
-                spec.sprinkle({get, set});
+                spec.sprinkle({cut, get, set});
 
                 const id = `accessors-${JS.accessors.id}`;
                 const keys = spec.get(this, id);
@@ -48,10 +49,11 @@
             },
             saveKey:    function (key, spec={}) {
                 aa.arg.test(spec, aa.verifyObject({
+                    cut: aa.isFunction,
                     get: aa.isFunction,
                     set: aa.isFunction,
                 }), `'spec'`);
-                spec.sprinkle({get, set});
+                spec.sprinkle({cut, get, set});
 
                 const id = `accessors-${JS.accessors.id}`;
                 if (!spec.get(this, id)) {
@@ -1647,11 +1649,13 @@
                 write:      aa.isObject
             }), `'accessors'`);
             const spec = aa.arg.optional(arguments, 1, {}, aa.verifyObject({
+                cutter: aa.isFunction,
                 getter: aa.isFunction,
                 setter: aa.isFunction,
                 verifiers: aa.isObjectOfFunctions
             }));
             spec.sprinkle({
+                cutter: cut,
                 getter: get,
                 setter: set
             });
@@ -1659,7 +1663,7 @@
             accessors.forEach((keyValues, accessor) => {
                 keyValues.forEach((value, key) => {
                     // Save key:
-                    JS.accessors.saveKey.call(this, key, {get: spec.getter, set: spec.setter});
+                    JS.accessors.saveKey.call(this, key, {cut: spec.cutter, get: spec.getter, set: spec.setter});
 
                     // Initialize value:
                     spec.setter(this, key, value);
@@ -1711,17 +1715,19 @@
         definePrivateMethods:       function (methods, spec={}) {
             aa.arg.test(methods, aa.isObjectOfFunctions, "'methods'");
             aa.arg.test(spec, aa.verifyObject({
+                cut: aa.isFunction,
                 get: aa.isFunction,
                 set: aa.isFunction,
             }), "'spec'");
             spec.sprinkle({
+                cut,
                 get,
                 set
             });
 
             methods.forEach((callback, name) => {
                 // Save key:
-                JS.accessors.saveKey.call(this, name, {get: spec.get, set: spec.set});
+                JS.accessors.saveKey.call(this, name, {cut: spec.cut, get: spec.get, set: spec.set});
 
                 // Initialize value:
                 spec.set(this, name, callback.bind(this));
@@ -1729,14 +1735,15 @@
         },
         getAccessor:                function (spec={}) {
             aa.arg.test(spec, aa.verifyObject({
+                cut: aa.isFunction,
                 get: aa.isFunction,
                 set: aa.isFunction
             }), "'spec'");
-            const {get, set} = aa.mapFactory();
-            spec.sprinkle({get, set});
+            const {cut, get, set} = aa.mapFactory();
+            spec.sprinkle({cut, get, set});
             
             const that = {};
-            const keys = JS.accessors.getKeys.call(this, {get: spec.get, set: spec.set});
+            const keys = JS.accessors.getKeys.call(this, {cut: spec.cut, get: spec.get, set: spec.set});
             // const emit = (aa.event.getEmitter.call(this, spec.get, 'listeners')).bind(this);
             keys.forEach(key => {
                 Object.defineProperty(that, key, {
@@ -2742,7 +2749,7 @@
             const methods = {
                 /**
                  * @param {any} that;
-                 * @param {any} key;
+                 * @param {string} key;
                  *
                  * @return {any}
                  */
@@ -2754,6 +2761,19 @@
                         return undefined;
                     }
                     return data[key];
+                },
+
+                /**
+                 * @param {any} that;
+                 * @param {string} key;
+                 *
+                 * @return {boolean}
+                 */
+                has: function (that, key) {
+                    aa.arg.test(key, aa.nonEmptyString, `'key'`);
+
+                    const data = map.get(that, "data");
+                    return data?.hasOwnProperty(key) ?? false;
                 },
 
                 /**
@@ -2779,6 +2799,26 @@
                 },
 
                 /**
+                 * Remove the entry from the map and return this entry's value.
+                 * 
+                 * @param {any} that;
+                 * @param {string} key;
+                 *
+                 * @return {any}
+                 */
+                cut: function (that, key) {
+                    aa.arg.test(key, aa.nonEmptyString, `'key'`);
+
+                    const data = map.get(that, "data");
+                    if (data) {
+                        const value = data[key] ?? undefined;
+                        delete data[key];
+                        return value;
+                    }
+                    return undefined;
+                },
+
+                /**
                  * @param {any} that;
                  * @param {string} key;
                  * @param {any} value;
@@ -2789,9 +2829,7 @@
                     aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
                     let data = map.get(that, "data");
-                    if (!data) {
-                        data = {};
-                    }
+                    data ??= {};
                     data[key] = value;
                     map.set(that, data);
                 },
@@ -2899,7 +2937,7 @@
                      *  Usage:
                      *      const emit = getEmitter(get, "listeners");
                      *      const emit = getEmitter({get}, "listeners");
-                     *      const emit = getEmitter({get, set}, "listeners");
+                     *      const emit = getEmitter({cut, get, set}, "listeners");
                      * 
                      * @param {function|object} accessor
                      * @param {string} key (optional)
@@ -2908,6 +2946,7 @@
                      * @return {function}
                      */
                     aa.arg.test(accessor, arg => (aa.isFunction(arg) || aa.verifyObject({
+                        cut: aa.isFunction,
                         get: aa.isFunction,
                         set: aa.isFunction,
                     })(arg)), `'accessor'`);
@@ -2916,7 +2955,7 @@
                     aa.arg.test(spec, aa.verifyObject(aa.event.specs), "'spec'");
 
                     if (aa.isObject(accessor)) {
-                        accessor.sprinkle({get, set});
+                        accessor.sprinkle({cut, get, set});
                     }
                     const getter = aa.isFunction(accessor) ? accessor : accessor.get;
                     const setter = aa.isObject(accessor) ? accessor.set : set;
@@ -2953,7 +2992,7 @@
                      * Usage:
                      *      MyClass.prototype.on = getListener(get, "listeners");
                      *      MyClass.prototype.on = getListener({get}, "listeners");
-                     *      MyClass.prototype.on = getListener({get, set}, "listeners");
+                     *      MyClass.prototype.on = getListener({cut, get, set}, "listeners");
                      * 
                      * @param {function|object} accessor (if accessor is a function, accessor defines the getter; else if accessor is an object)
                      * @param {string} key (optional)
@@ -2962,6 +3001,7 @@
                      * @return {function}
                      */
                     aa.arg.test(accessor, arg => (aa.isFunction(arg) || aa.verifyObject({
+                        cut: aa.isFunction,
                         get: aa.isFunction,
                         set: aa.isFunction,
                     })(arg)), `'accessor'`);
@@ -2969,7 +3009,7 @@
                     const spec = aa.arg.optional(arguments, 2, {}, aa.verifyObject(aa.event.specs));
 
                     if (aa.isObject(accessor)) {
-                        accessor.sprinkle({get, set});
+                        accessor.sprinkle({cut, get, set});
                     }
                     const getter = aa.isFunction(accessor) ? accessor : accessor.get;
                     const setter = aa.isObject(accessor) ? accessor.set : set;
@@ -3797,7 +3837,7 @@
         every:              function (callback /*, thisArg */) {
             "use strict";
             var i;
-            var value, result;
+            let value, isVerified;
 
             if (this == null) { throw new TypeError("this vaut null ou n est pas défini"); }
             if (typeof callback !== "function") { throw new TypeError("First argument must be a Function."); }
@@ -3809,8 +3849,9 @@
             // aa:
             for (i=0; i<len; i++) {
                 value = that[i];
-                result = callback.call(thisArg, value, i, that);
-                if (!result) {
+                isVerified = callback.call(thisArg, value, i, that);
+                if (!aa.isBool(isVerified)) throw new TypeError("The callback Function must return a Boolean.");
+                if (!isVerified) {
                     return false;
                 }
             }
@@ -5682,6 +5723,6 @@
     })();
     // ----------------------------------------------------------------
     JS.accessors.id = aa.uid();
-    const {get, set} = aa.mapFactory();
+    const {cut, get, set} = aa.mapFactory();
     // ----------------------------------------------------------------
 })();
