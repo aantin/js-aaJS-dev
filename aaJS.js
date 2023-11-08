@@ -3164,7 +3164,7 @@
     });
     aa.deploy(Number.prototype, {
         /**
-         * Return the minimum or maximum of the given boundaries if the actual Number is out of range.
+         * Return th number if it is within the given boundaries; else return the minimum or maximum (both included).
          * 
          * @param {number} min
          * @param {number} max
@@ -3178,6 +3178,16 @@
             const value = this+0;
             return value < min ? min : value > max ? max : value;
         },
+        /**
+         * Return th number if it is within the given Integer boundaries; else return the minimum (included) or maximum (excluded).
+         */
+        clamp:          function (min, max) {
+            aa.arg.test(min, aa.isInt, "'min'");
+            aa.arg.test(max, aa.isInt, "'max'");
+
+            const value = this+0;
+            return value < min ? min : value > max - 1 ? max - 1 : value;
+        },
         normalize:      function (origRange, destRange) {
             const value = this+0;
             const min = origRange[0];
@@ -3185,14 +3195,14 @@
             const variation = (destRange[1] - destRange[0]) / (max - min);
             return (destRange[0] + ((value - min) * variation));
         },
-        between:        function (min, max /*, strict */) {
+        between:        function (min, max, strict=false) {
             /**
              * @param {Number} min
              * @param {Number} max
-             * @param {Boolean} s=false (strict)
+             * @param {Boolean} strict=false (strict)
              */
 
-            const strict = aa.arg.optional(arguments, 2, false, aa.isBool);
+            aa.arg.test(strict, aa.isBool, "'strict'");
             return (strict ?
                 (this > min && this < max)
                 : (this >= min && this <= max)
@@ -4248,8 +4258,17 @@
             });
             return o;
         },
-        cancel:             function (eventName, callback) {
-            var bubble = (arguments && arguments.length > 2 && aa.isBool(arguments[2]) ? arguments[2] : false);
+        cancel:             function (eventName, callback, bubble=false) {
+            if (aa.isObject(eventName)) {
+                const events = eventName;
+                aa.arg.test(events, aa.isObjectOfFunctions, "'events'");
+                events.forEach((callback, eventName) => {
+                    this.cancel(eventName, callback, bubble);
+                });
+                return this;
+            }
+
+            aa.arg.test(bubble, aa.isBool, "'bubble'");
 
             if (!aa.isString(eventName) || !eventName.trim()) {
                 throw TypeError("Event name is not a valid string.");
