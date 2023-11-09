@@ -7,7 +7,7 @@
     const versioning = {
         aaJS: {
             version: {
-                version: "3.6.0",
+                version: "3.7.0",
                 dependencies: {}
             }
         }
@@ -3181,12 +3181,25 @@
         /**
          * Return th number if it is within the given Integer boundaries; else return the minimum (included) or maximum (excluded).
          */
-        clamp:          function (min, max) {
+        clamp:          function (min, max, options={}) {
             aa.arg.test(min, aa.isInt, "'min'");
             aa.arg.test(max, aa.isInt, "'max'");
+            aa.arg.test(options, aa.verifyObject({
+                loop: aa.isBool,
+            }), "'options'");
+            options.sprinkle({
+                loop: false
+            });
 
-            const value = this+0;
-            return value < min ? min : value > max - 1 ? max - 1 : value;
+            let value = this+0;
+            if (options.loop) {
+                if (value < min) {
+                    value = max + (value % (max - min));
+                } else if (max - 1 < value) {
+                    value = min + (value % (max - min));
+                }
+            }
+            return min === max ? min : value < min ? min : value > max - 1 ? max - 1 : value;
         },
         normalize:      function (origRange, destRange) {
             const value = this+0;
