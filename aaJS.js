@@ -3172,11 +3172,11 @@
          * @return {number}
          */
         bound:          function (min, max) {
-            aa.arg.test(min, aa.isNumber, "'min'");
-            aa.arg.test(max, aa.isNumber, "'max'");
+            aa.arg.test(min, aa.isNullOr(aa.isNumber), "'min'");
+            aa.arg.test(max, aa.isNullOr(aa.isNumber), "'max'");
 
             const value = this+0;
-            return value < min ? min : value > max ? max : value;
+            return (min !== null && value < min) ? min : (max !== null && max < value) ? max : value;
         },
         /**
          * Return th number if it is within the given Integer boundaries; else return the minimum (included) or maximum (excluded).
