@@ -7,7 +7,7 @@
     const versioning = {
         aaJS: {
             version: {
-                version: "3.7.0",
+                version: "3.8.0",
                 dependencies: {}
             }
         }
@@ -605,6 +605,18 @@
             }
         },
         any:                        () => true,
+        asyncLoop:                  function (length, callback, thisArg=null) {
+            aa.arg.test(length, aa.isPositiveInt, "'length'");
+            aa.arg.test(callback, aa.isFunction, "'callback'");
+
+            let i = 0;
+
+            (function loop () {
+                callback.call(thisArg, i);
+                if (i < length) setTimeout(loop, 0);
+                i++;
+            })();
+        },
         b64_to_utf8:                function (param){
 
             return decodeURIComponent(escape(window.atob(param)));
@@ -3991,6 +4003,22 @@
                 }
                 i++;
             }
+        },
+        forEachAsync:       function (callback, resolve=null) {
+            aa.arg.test(resolve, aa.isNullOr(aa.isFunction), "'resolve'");
+            let i = -1;
+            const iteration = () => {
+                i++;
+                const item = this[i];
+                callback(item, i, this);
+                if (i < this.length - 1) {
+                    setTimeout(iteration, 0);
+                }
+                if (i === this.length - 1) {
+                    resolve?.();
+                }
+            };
+            iteration();
         },
         loopThrough:        function (callback /*, spec */) {
             /**
