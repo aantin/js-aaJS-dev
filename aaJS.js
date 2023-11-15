@@ -7,7 +7,7 @@
     const versioning = {
         aaJS: {
             version: {
-                version: "3.8.0",
+                version: "3.9.0",
                 dependencies: {}
             }
         }
@@ -519,7 +519,7 @@
                     : defaultValue
                 );
             },
-            test:   function (arg, tester /* [, position [, message]] */) {
+            test:   function (arg, tester /* [, position [, message [, ErrorClass]]] */) {
                 if (!aa.isFunction(tester) && !aa.isBool(tester)) { throw new TypeError("Second argument must be a Function."); }
 
                 let i;
@@ -530,6 +530,7 @@
                 const argv = Array.from(arguments).slice(2);
                 const position = argv.find(aa.isPositiveInt);
                 const message = argv.find(aa.nonEmptyString) || "invalid";
+                const ErrorClass = argv.find(arg => !aa.isNumber(arg) && !aa.isString(arg)) ?? TypeError;
 
                 const writeMessage = function (position, str) {
                     const positions = [
@@ -551,14 +552,14 @@
                 };
 
                 if (aa.isBool(tester) && !tester) {
-                    throw new TypeError(writeMessage(position, message));
+                    throw new ErrorClass(writeMessage(position, message));
                     return false;
                 } else if (aa.isFunction(tester) && !tester(arg)) {
                     const text = tester.label ? `must be ${tester.label}`: null;
                     if (text) {
-                        throw new TypeError(writeMessage(position, text));
+                        throw new ErrorClass(writeMessage(position, text));
                     } else {
-                        throw new TypeError(writeMessage(position, message));
+                        throw new ErrorClass(writeMessage(position, message));
                     }
                     return false;
                 }
@@ -1594,8 +1595,9 @@
                 aa.isObject(arg)
                 && Object.keys(arg).every(key => ['strict', 'silent'].has(key) && aa.isBool(arg[key]))
             );
-            options.strict ??= false;
-            options.silent ??= false;
+            options.strict ??=  false;
+            options.silent ??=  false;
+
             if (strict) {
                 options.strict = strict;
             }
@@ -4004,21 +4006,45 @@
                 i++;
             }
         },
-        forEachAsync:       function (callback, resolve=null) {
+        forEachAsync:       function (callback, resolve=null, options={}) {
             aa.arg.test(resolve, aa.isNullOr(aa.isFunction), "'resolve'");
-            let i = -1;
-            const iteration = () => {
-                i++;
-                const item = this[i];
-                callback(item, i, this);
-                if (i < this.length - 1) {
-                    setTimeout(iteration, 0);
+            aa.arg.test(options, aa.verifyObject({
+                context:    aa.any,
+                parallel:   aa.isBool,
+            }), "'options'");
+            options.sprinkle({
+                context:    null,
+                parallel:   false,
+            });
+            callback = callback.bind(options.context);
+
+            if (options.parallel) {
+                let todoLength = this.length;
+                for (let i = 0; i < this.length; i++) {
+                    setTimeout(() => {
+                        const item = this[i];
+                        callback(item, i, this);
+                        todoLength--;
+                        if (todoLength === 0) {
+                            resolve?.();
+                        }
+                    });
                 }
-                if (i === this.length - 1) {
-                    resolve?.();
-                }
-            };
-            iteration();
+            } else {
+                let i = -1;
+                const iteration = () => {
+                    i++;
+                    const item = this[i];
+                    callback(item, i, this);
+                    if (i < this.length - 1) {
+                        setTimeout(iteration, 0);
+                    }
+                    if (i === this.length - 1) {
+                        resolve?.();
+                    }
+                };
+                iteration();
+            }
         },
         loopThrough:        function (callback /*, spec */) {
             /**
@@ -4723,8 +4749,8 @@
                 aa.isObject(arg)
                 && Object.keys(arg).every(key => ['strict', 'silent'].has(key) && aa.isBool(arg[key]))
             );
-            options.silent ??= false;
-            options.strict ??= strict;
+            options.silent ??=  false;
+            options.strict ??=  strict;
 
             // Main:
             if (options.strict) {
