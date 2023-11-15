@@ -7,7 +7,7 @@
     const versioning = {
         aaJS: {
             version: {
-                version: "3.9.0",
+                version: "3.9.1",
                 dependencies: {}
             }
         }
@@ -4043,7 +4043,7 @@
                         resolve?.();
                     }
                 };
-                iteration();
+                if (this.length > 0) iteration();
             }
         },
         loopThrough:        function (callback /*, spec */) {
