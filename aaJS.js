@@ -1,13 +1,11 @@
 "use strict"; // é
+const aa = {};
 (() => {
     // ----------------------------------------------------------------
-    if (window.aa !== undefined) { throw new Error("'aaJS' should be called before every other 'aa' modules."); }
-    // ----------------------------------------------------------------
-    window.aa = {};
     const versioning = {
         aaJS: {
             version: {
-                version: "3.9.1",
+                version: "3.10.0",
                 dependencies: {}
             }
         }
@@ -97,7 +95,7 @@
             }
         }
     });
-    aa.deploy(window, {
+    aa.deploy((self.window ?? self), {
         els: (function () {
             return function (selector) {
                 /**
@@ -577,6 +575,8 @@
             const charsets = ['utf-8']; // First item will be used by default
 
             return function (path, options={}) {
+                if (!self.document) throw new Error("document not defined.");
+
                 aa.arg.test(path, aa.nonEmptyString, "'path'");
                 aa.arg.test(options, aa.verifyObject({
                     charset: aa.inArray(charsets),
@@ -596,6 +596,8 @@
             };
         })(),
         addStyleToScript:           function (scriptFilename, styleFilename) {
+            if (!self.document) throw new Error("document not defined.");
+
             const path = aa.findPathOf(scriptFilename);
             if (path) {
                 var css = document.createElement("link");
@@ -619,21 +621,17 @@
             })();
         },
         b64_to_utf8:                function (param){
-
-            return decodeURIComponent(escape(window.atob(param)));
-        },
-        bodyWrite:                  function (param){
-            var div = document.createElement('div');
-            div.innerHTML = param;
-            
-            document.body.appendChild(div);
+            if (!self.window) throw new Error("window not defined.");
+            return decodeURIComponent(escape(self.window.atob(param)));
         },
         copySelectionToClipboard:   function (){
+            if (!self.document) throw new Error("document not defined.");
 
             document.execCommand('copy', true);
             return;
         },
         copyTextToClipboard:        function (parametre){
+            if (!self.document) throw new Error("document not defined.");
 
             var textareaDOM = document.createElement('textarea');
             
@@ -707,6 +705,8 @@
             return false;
         },
         findPathOf:                 function (filename) {
+            if (!self.document) throw new Error("document not defined.");
+
             const folder = document
                 .getElementsByTagName("script")
                 .reduce(function (folder, script) {
@@ -726,6 +726,8 @@
             return folder;
         },
         getCookie:                  function (sName) {
+            if (!self.document) throw new Error("document not defined.");
+
             //if (navigator.cookieEnabled)test('navigator.cookieEnabled','enabled');
             if (!document.cookie) {
                 //test('document.cookie','undefined');
@@ -751,6 +753,8 @@
             return '???';
         },
         getScriptFolder:            function (file) {
+            if (!self.document) throw new Error("document not defined.");
+
             var res = undefined;
             var scripts = document.getElementsByTagName('script');
             scripts.forEach(function (script) {
@@ -765,6 +769,8 @@
             return res;
         },
         getStyleFolder:             function (file) {
+            if (!self.document) throw new Error("document not defined.");
+
             var res = undefined;
             var links = document.getElementsByTagName('link');
             links.forEach(function (link) {
@@ -919,6 +925,8 @@
             }
         },
         insertNodeAtSelection:      function (win, insertNode) { //, editableNode=null
+            if (!self.document) throw new Error("document not defined.");
+
             var doc;
             var sel = win.getSelection();
             var range = sel.getRangeAt(0);
@@ -1100,7 +1108,8 @@
             return (o === true || o === false);
         },
         isDom:                      function (o) {
-            if (typeof window['HTMLElement'] !== 'undefined') {
+            if (!self.window) throw new Error("window not defined.");
+            if (typeof self.window['HTMLElement'] !== 'undefined') {
                return (!!o && o instanceof HTMLElement);
             }
             return (!!o && typeof o === 'object' && o.nodeType === 1 && !!o.nodeName);
@@ -1366,6 +1375,8 @@
             textarea.style.height = `${textarea.scrollHeight}px`;
         },
         setCookie:                  function (sName, sValue){
+            if (!self.document) throw new Error("document not defined.");
+
             var today = new Date();
             var expires = new Date();
             
@@ -1462,11 +1473,12 @@
             }
         },
         testStorage:                function (type) {
+            if (!self.window) throw new Error("window not defined.");
             if (type !== "local" && type !== "session") {
                 throw new Error("Invalid parameter.");
             }
-            try{
-                const storage = window[type+"Storage"],
+            try {
+                const storage = self.window[type+"Storage"],
                     x = "__aa.testStorage__";
                 storage.setItem(x,x);
                 storage.getItem(x);
@@ -1510,7 +1522,8 @@
         },
         utf8_to_b64:                function (param){
             // return param;
-            return window.btoa(unescape(encodeURIComponent(param)));
+            if (!self.window) throw new Error("window not defined.");
+            return self.window.btoa(unescape(encodeURIComponent(param)));
         },
         verifyInterface:            function (spec={}) {
             aa.arg.test(spec, aa.verifyObject({
@@ -3095,8 +3108,8 @@
                 const that = this;
                 const args = arguments;
 
-                window.clearTimeout(timer);
-                timer = window.setTimeout(()=>{
+                clearTimeout(timer);
+                timer = setTimeout(()=>{
                     callback.apply(that, args);
                 }, delay);
             });
@@ -3135,8 +3148,8 @@
                     if (!last && spec.start) {
                         callback.apply(that, args);
                     }
-                    window.clearTimeout(timer);
-                    timer = window.setTimeout(()=>{
+                    clearTimeout(timer);
+                    timer = setTimeout(()=>{
                         callback.apply(that, args);
                         last = null;
                     }, spec.delay);
@@ -3148,7 +3161,7 @@
             aa.arg.test(delay, aa.isStrictlyPositiveInt, `'delay'`);
             aa.arg.test(callback, aa.isFunction, `'callback'`);
 
-            window.setTimeout(callback, delay);
+            setTimeout(callback, delay);
         },
     }, {force: true});
 
@@ -3185,7 +3198,7 @@
          * 
          * @return {number}
          */
-        bound:          function (min, max) {
+        bound:          function (min, max=null) {
             aa.arg.test(min, aa.isNullOr(aa.isNumber), "'min'");
             aa.arg.test(max, aa.isNullOr(aa.isNumber), "'max'");
 
@@ -3258,10 +3271,12 @@
             return this.toString();
         },
         base64Encode:           function (){
-            return window.btoa(unescape(encodeURIComponent(this.valueOf())));
+            if (!self.window) throw new Error("window not defined.");
+            return self.window.btoa(unescape(encodeURIComponent(this.valueOf())));
         },
         base64Decode:           function (){
-            return decodeURIComponent(escape(window.atob(this.valueOf())));
+            if (!self.window) throw new Error("window not defined.");
+            return decodeURIComponent(escape(self.window.atob(this.valueOf())));
         },
         compare:                function (str) {
             if (!aa.isString(str)) { throw new TypeError("Argument must be a String."); }
@@ -4006,7 +4021,21 @@
                 i++;
             }
         },
-        forEachAsync:       function (callback, resolve=null, options={}) {
+        /**
+         * Loop asynchronously for each element of the Array.
+         * @param <function>    callback
+         * @param <function>    resolve=null
+         * @param <object>      options={}
+         *      @param <any>    options.context=null
+         *      @param <bool>   options.parallel=false
+         * 
+         * @return <void>
+         */
+        forEachAsync:       function (callback /*, resolve=null, options={} */) {
+            const args = [...arguments].slice(1);
+            const resolve = args.find(aa.isFunction) ?? null;
+            const options = args.find(aa.isObject) ?? {};
+
             aa.arg.test(resolve, aa.isNullOr(aa.isFunction), "'resolve'");
             aa.arg.test(options, aa.verifyObject({
                 context:    aa.any,
@@ -4019,13 +4048,13 @@
             callback = callback.bind(options.context);
 
             if (options.parallel) {
-                let todoLength = this.length;
+                let remaining = this.length;
                 for (let i = 0; i < this.length; i++) {
                     setTimeout(() => {
                         const item = this[i];
                         callback(item, i, this);
-                        todoLength--;
-                        if (todoLength === 0) {
+                        remaining--;
+                        if (remaining === 0) {
                             resolve?.();
                         }
                     });
@@ -5039,7 +5068,7 @@
     })();
 
     // IMAGE functions:
-    aa.deploy(Image.prototype, {
+    if (self.window?.Image) aa.deploy(self.window.Image.prototype, {
         toBase64:   function (){
             this.setAttribute("crossOrigin", "anonymous");
             var base64 = this.toDataURL()
@@ -5050,6 +5079,8 @@
             return base64;
         },
         toDataURL:  function () {
+            if (!self.document) throw new Error("document not defined.");
+
             let dataUrl;
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
@@ -5176,7 +5207,7 @@
             }
         }
     });
-    aa.deploy(window, {
+    if (self.window) aa.deploy(self.window, {
         resizeImg: function (options) {
             /**
              * @param {Object} options
@@ -5359,12 +5390,14 @@
     });
 
     // ANIMATION functions:
-    window.requestAnimationFrame = window.requestAnimationFrame
-        || window.mozRequestAnimationFrame
-        || window.webkitRequestAnimationFrame
-        || window.msRequestAnimationFrame
-    ;
-    window.cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame;
+    if (self.window) {
+        self.window.requestAnimationFrame = self.window.requestAnimationFrame
+            || self.window.mozRequestAnimationFrame
+            || self.window.webkitRequestAnimationFrame
+            || self.window.msRequestAnimationFrame
+        ;
+        self.window.cancelAnimationFrame = self.window.cancelAnimationFrame || self.window.mozCancelAnimationFrame;
+    }
     // ----------------------------------------------------------------
     // Prototypes methods:
     aa.prototypes = {
