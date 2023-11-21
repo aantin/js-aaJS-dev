@@ -5,7 +5,7 @@ const aa = {};
     const versioning = {
         aaJS: {
             version: {
-                version: "3.10.0",
+                version: "3.11.0",
                 dependencies: {}
             }
         }
@@ -3979,14 +3979,13 @@ const aa = {};
             }
             return undefined;
         },
+        findLastIndex:      function (callback) {
+            return this.findLastIndex.apply(this, arguments) ?? -1;
+        },
         findReverse:        function (callback) {
-            'use strict';
-            if (this == null) {
-                throw new TypeError('Array.prototype.find called on null or undefined');
-            }
-            if (typeof callback !== "function") {
-                throw new TypeError('callback must be a function');
-            }
+            if (this == null)                   throw new TypeError('Array.prototype.find called on null or undefined');
+            if (typeof callback !== "function") throw new TypeError('callback must be a function');
+
             var i;
             var list = Object(this);
             var length = list.length >>> 0;
@@ -4038,12 +4037,14 @@ const aa = {};
 
             aa.arg.test(resolve, aa.isNullOr(aa.isFunction), "'resolve'");
             aa.arg.test(options, aa.verifyObject({
-                context:    aa.any,
-                parallel:   aa.isBool,
+                skipEmpty:      aa.isBool,
+                context:        aa.any,
+                parallel:       aa.isBool,
             }), "'options'");
             options.sprinkle({
-                context:    null,
-                parallel:   false,
+                skipEmpty:      true,
+                context:        null,
+                parallel:       false,
             });
             callback = callback.bind(options.context);
 
@@ -4052,7 +4053,7 @@ const aa = {};
                 for (let i = 0; i < this.length; i++) {
                     setTimeout(() => {
                         const item = this[i];
-                        callback(item, i, this);
+                        if (i in this || !options.skipEmpty) callback(item, i, this);
                         remaining--;
                         if (remaining === 0) {
                             resolve?.();
