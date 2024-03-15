@@ -3189,6 +3189,11 @@ const aa = {};
             return `${num}${ordinals[lastChar - 1] || 'th'}`;
         }
     });
+    aa.deploy(Date.prototype, {
+        toInputString:  function () {
+            return `${this.getFullYear()}-${(this.getMonth()+1+'').padStart(2, '0')}-${(this.getDate()+'').padStart(2, '0')}`;
+        },
+    });
     aa.deploy(Number.prototype, {
         /**
          * Return th number if it is within the given boundaries; else return the minimum or maximum (both included).
