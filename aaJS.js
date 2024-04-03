@@ -4321,7 +4321,7 @@ const aa = {};
 
             return {left, top};
         },
-        getFixedPositionOf:    function (element) {
+        getFixedPositionOf:     function (element) {
             aa.arg.test(element, aa.isElement, "'element'");
 
             const absolute = Object.getAbsolutePositionOf(element);
