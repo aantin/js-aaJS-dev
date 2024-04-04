@@ -3139,18 +3139,17 @@ const aa = {};
 
             let timer;
             let last;
-            return function () {
+            return function (...args) {
                 const that = this;
-                const args = arguments;
 
                 const now = Date.now();
                 if (!last || now > last+spec.delay) {
                     if (!last && spec.start) {
-                        callback.apply(that, args);
+                        callback.call(that, ...args);
                     }
                     clearTimeout(timer);
                     timer = setTimeout(()=>{
-                        callback.apply(that, args);
+                        callback.call(that, ...args);
                         last = null;
                     }, spec.delay);
                     last = now;
