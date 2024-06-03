@@ -4818,7 +4818,9 @@ const aa = {};
         clear:              function () {
             aa.arg.test(this, aa.isNode, ": 'clear' method can not be called on an Object that is not a DOM Element.");
             
-            this.innerHTML = '';
+            while (this.firstChild) {
+                this.removeChild(this.firstChild);
+            }
         },
         diveByClass:        function (className,func) {
             /**
