@@ -5428,6 +5428,262 @@ const aa = {};
         }
     };
     // ----------------------------------------------------------------
+    aa.LinkedList = (() => {
+        const {cut, get, set} = aa.mapFactory();
+
+        function sizeDecrement () {
+            const size = get(this, "size") - 1;
+            set(this, "size", size > -1 ? size : 0);
+        }
+        function sizeIncrement () {
+            set(this, "size", get(this, "size") + 1);
+        }
+
+        // Classes:
+        class LinkedListError extends Error {
+            constructor (message, filename, lineNumber) {
+                super(message, filename, lineNumber);
+                Object.defineProperty(this, "name", {
+                    get: () => "LinkedListError",
+                });
+            }
+        }
+        class LinkedListTypeError extends TypeError {
+            constructor (message, filename, lineNumber) {
+                super(message, filename, lineNumber);
+                Object.defineProperty(this, "name", {
+                    get: () => "LinkedListTypeError",
+                });
+            }
+        }
+        class LinkedListNodeError extends Error {
+            constructor (message, filename, lineNumber) {
+                super(message, filename, lineNumber);
+                Object.defineProperty(this, "name", {
+                    get: () => "LinkedListNodeError",
+                });
+            }
+        }
+        class LinkedListNodeTypeError extends TypeError {
+            constructor (message, filename, lineNumber) {
+                super(message, filename, lineNumber);
+                Object.defineProperty(this, "name", {
+                    get: () => "LinkedListNodeTypeError",
+                });
+            }
+        }
+        function LinkedList () {
+            set(this, "size", 0);
+            set(this, "head", null);
+            set(this, "trail", null);
+            set(this, "authenticate", null);
+            
+            Object.defineProperties(this, {
+                authenticate: {
+                    get: () => get(this, "authenticate"),
+                    set: func => {
+                        if (typeof func !== "func" && func !== null) throw new LinkedListTypeError("The 'authenticate' attribute must be a Function or null.");
+                        set(this, "authenticate", func);
+                    },
+                },
+                head: {
+                    get: () => get(this, "head"),
+                },
+                trail: {
+                    get: () => get(this, "trail"),
+                },
+                size: {
+                    get: () => get(this, "size"),
+                },
+            });
+        }
+        aa.deploy(LinkedList.prototype, {
+            /**
+             * Add as many value(s) to the list as provided argument(s).
+             * @param   any value1
+             * @param   any value2
+             * @param   any ...
+             */
+            add:        function (/* ...values */) {
+                const len = arguments.length >>> 0;
+                let i = 0;
+                let size = get(this, "size");
+                while (i < len) {
+                    if (i in arguments) {
+                        const authenticate = get(this, "authenticate");
+                        if (authenticate && !authenticate(arguments[i])) throw new LinkedListTypeError("The provided value(s) must comply with the 'authenticate' Function.");
+                        
+                        const node = new LinkedListNode(arguments[i], this);
+                        if (this.head === null) {
+                            set(this, "head", node);
+                        }
+                        if (size > 0) {
+                            const trail = get(this, "trail");
+                            set(trail, "next", node);
+                            set(node, "previous", trail);
+                        }
+                        size ++;
+                        set(this, "size", size);
+                        set(this, "trail", node);
+                    }
+                    i++;
+                }
+            },
+            every:      function (callback, thisArg) {
+                const that = Object(this);
+                let node = get(this, "head");
+                let i = 0;
+                while (node) {
+                    if (!callback.call(thisArg, node, i, that)) return false;
+                    node = node.next;
+                    i++;
+                }
+                return true;
+            },
+            filter:     function (callback, thisArg) {
+                const that = Object(this);
+                const list = new LinkedList();
+                let node = get(this, "head");
+                let i = 0;
+                while (node) {
+                    if (callback.call(thisArg, node, i, that)) list.add(node.value);
+                    node = node.next;
+                    i++;
+                }
+                return list;
+            },
+            find:       function (callback, thisArg) {
+                const that = Object(this);
+                let node = get(this, "head");
+                let i = 0;
+                while (node) {
+                    if (callback.call(thisArg, node, i, that)) return node;
+                    node = node.next;
+                    i++;
+                }
+                return undefined;
+            },
+            findLast:   function (callback, thisArg) {
+                const that = Object(this);
+                let node = get(this, "trail");
+                let i = get(this, "size") - 1;
+                while (node) {
+                    if (callback.call(thisArg, node, i, that)) return node;
+                    node = node.previous;
+                    i--;
+                }
+                return undefined;
+            },
+            forEach:    function (callback, thisArg) {
+                const that = Object(this);
+                let node = get(this, "head");
+                let i = 0;
+                while (node) {
+                    callback.call(thisArg, node, i, that);
+                    node = node.next;
+                    i++;
+                }
+            },
+            reduce:     function (callback, accumulator, thisArg) {
+                const that = Object(this);
+                let node = get(this, "head");
+                let i = 0;
+                while (node) {
+                    accumulator = callback.call(thisArg, accumulator, node, i, that);
+                    node = node.next;
+                    i++;
+                }
+                return accumulator;
+            },
+            some:       function (callback, thisArg) {
+                const that = Object(this);
+                let node = get(this, "head");
+                let i = 0;
+                while (node) {
+                    if (callback.call(thisArg, node, i, that)) return true;
+                    node = node.next;
+                    i++;
+                }
+                return false;
+            },
+            toArray:    function () {
+                const result = [];
+                let node = get(this, "head");
+                while (node) {
+                    result.push(node.value);
+                    node = node.next;
+                }
+                return result;
+            },
+        }, {force: true});
+
+        // Statics:
+        aa.deploy(LinkedList, {
+            from: function (arr) {
+                if (!aa.isArrayLike(arr)) throw new TypeError("The argument must be an Array-like.");
+                const list = new LinkedList();
+                list.add(...arr);
+                return list;
+            },
+        }, {force: true});
+
+        function LinkedListNode (value, parent) {
+            set(this, "parent", parent);
+            set(this, "next", null);
+            set(this, "previous", null);
+            Object.defineProperties(this, {
+                next: {
+                    get: () => get(this, "next") ?? null,
+                },
+                previous: {
+                    get: () => get(this, "previous") ?? null,
+                },
+                value: {
+                    configurable: false,
+                    enumerable: true,
+                    value,
+                    writable: true,
+                },
+            });
+        }
+        aa.deploy(LinkedListNode.prototype, {
+            insert: function (value) {
+                const node = new LinkedListNode(value);
+
+                const next      = get(this, "next");
+                const parent    = get(this, "parent");
+                const previous  = get(this, "previous");
+
+                if (previous)   set(previous, "next", node);
+                else            set(parent, "head", node);
+
+                set(this, "previous", node);
+                sizeIncrement.call(parent);
+                set(node, "next", this);
+            },
+            remove: function () {
+                const parent    = get(this, "parent");
+                const previous  = get(this, "previous");
+                const next      = get(this, "next");
+                
+                if (previous)   set(previous, "next", next ?? null);
+                else            set(parent, "head", next ?? null);
+                
+                if (next)       set(next, "previous", previous ?? null);
+                else            set(parent, "trail", previous ?? null);
+                
+                set(this, "next", null);
+                set(this, "previous", null);
+
+                sizeDecrement.call(parent);
+
+                cut(this, "next");
+                cut(this, "parent");
+                cut(this, "previous");
+            },
+        }, {force: true});
+        return LinkedList;
+    })();
     aa.versioning = new (function () {
         // Dependencies syntax (https://semver.org/):
         /*
