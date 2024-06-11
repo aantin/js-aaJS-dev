@@ -3983,18 +3983,12 @@ const aa = {};
 
             if (len > that.length) throw new TypeError();
 
-            const result = new Array(len);
+            const result = [];
             const thisArg = arguments[1] ?? void 0;
 
             let i = 0;
             while (i < len) {
                 if (i in that) {
-                    // NOTE: Techniquement on devrait utiliser Object.defineProperty
-                    //       pour le prochain index car push peut être affecté
-                    //       par les propriétés d'Object.prototype et d'Array.prototype.
-                    //       Cependant cette méthode est récente et les cas de collisions
-                    //       devraient rester rares : on préfère donc l'alternative la plus
-                    //       compatible.
                     if (callback.call(thisArg, that[i], i, that)) {
                         result.push(that[i]);
                     }
@@ -5512,7 +5506,7 @@ const aa = {};
                     if (i in arguments) {
                         const authenticate = get(this, "authenticate");
                         if (authenticate && !authenticate(arguments[i])) throw new LinkedListTypeError("The provided value(s) must comply with the 'authenticate' Function.");
-                        
+
                         const node = new LinkedListNode(arguments[i], this);
                         if (this.head === null) {
                             set(this, "head", node);
