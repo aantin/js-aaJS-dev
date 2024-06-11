@@ -3891,135 +3891,106 @@ const aa = {};
 
         // from MDN:
         every:              function (callback /*, thisArg */) {
-            "use strict";
-            var i;
-            let value, isVerified;
-
             if (this == null) { throw new TypeError("this vaut null ou n est pas défini"); }
             if (typeof callback !== "function") { throw new TypeError("First argument must be a Function."); }
 
             var that = Object(this);
             var len = that.length >>> 0;
-            const thisArg = arguments.length > 1 ? arguments[1] : undefined;
+            const thisArg = arguments[1] ?? void 0;
 
-            // aa:
-            for (i=0; i<len; i++) {
-                value = that[i];
-                isVerified = callback.call(thisArg, value, i, that);
-                if (!aa.isBool(isVerified)) throw new TypeError("The callback Function must return a Boolean.");
-                if (!isVerified) {
+            let i = 0;
+            while (i < len) {
+                if (i in that && !callback.call(thisArg, that[i], i, that)) {
                     return false;
                 }
+                i++;
             }
 
-            // from MDN:
-            // i = 0;
-            // while(i < len) {
-            //     if (i in that) {
-            //         value = that[i];
-            //         result = callback.call(thisArg, value, i, that);
-            //         if (!result) {
-            //             return false;
-            //         }
-            //     }
-            //     i++;
-            // }
             return true;
         },
         filter:             function (callback /*, thisArg */) {
-            "use strict";
+            if (this === void 0 || this === null) throw new TypeError('Array.prototype.filter called on null or undefined');
+            if (typeof callback !== "function") throw new TypeError('callback must be a function');
 
-            if (this === void 0 || this === null) {
-              throw new TypeError('Array.reduce called on null or undefined');
-            }
-
-            var t = Object(this);
-            var len = t.length >>> 0;
+            const that = Object(this);
+            const len = that.length >>> 0;
 
             // NOTE : fix to avoid very long loop on negative length value
 
-            if (len > t.length || typeof callback != 'function') {
-              throw new TypeError();
-            }
+            if (len > that.length) throw new TypeError();
 
-            var res = [];
-            var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
-            for (var i = 0; i < len; i++) {
-                if (i in t) {
-                    var val = t[i];
+            const result = new Array(len);
+            const thisArg = arguments[1] ?? void 0;
 
+            let i = 0;
+            while (i < len) {
+                if (i in that) {
                     // NOTE: Techniquement on devrait utiliser Object.defineProperty
                     //       pour le prochain index car push peut être affecté
                     //       par les propriétés d'Object.prototype et d'Array.prototype.
                     //       Cependant cette méthode est récente et les cas de collisions
                     //       devraient rester rares : on préfère donc l'alternative la plus
                     //       compatible.
-                    if (callback.call(thisArg, val, i, t)) {
-                        res.push(val);
+                    if (callback.call(thisArg, that[i], i, that)) {
+                        result.push(that[i]);
                     }
                 }
+                i++;
             }
-            return res;
+            return result;
         },
-        find:               function (callback) {
-            "use strict";
-            if (this == null) {
-                throw new TypeError('Array.prototype.find called on null or undefined');
-            }
-            if (typeof callback !== "function") {
-                throw new TypeError('callback must be a function');
-            }
-            var i;
-            var list = Object(this);
-            var length = list.length >>> 0;
-            var thisArg = arguments[1];
-            var value;
+        find:               function (callback /*, thisArg */) {
+            if (this == null) throw new TypeError('Array.prototype.find called on null or undefined');
+            if (typeof callback !== "function") throw new TypeError('callback must be a function');
+
+            const that = Object(this);
+            const length = that.length >>> 0;
+            const thisArg = arguments[1] ?? void 0;
         
-            for(i=0; i<length; i++) {
-                value = list[i];
-                if (callback.call(thisArg, value, i, list)) {
-                    return value;
+            let i = 0;
+            while (i < length) {
+                if (i in that && callback.call(thisArg, that[i], i, that)) {
+                    return that[i];
                 }
+                i++;
             }
             return undefined;
         },
-        findLastIndex:      function (callback) {
+        findLastIndex:      function (callback /*, thisArg */) {
             return this.findLastIndex.apply(this, arguments) ?? -1;
         },
-        findReverse:        function (callback) {
+        findReverse:        function (callback /*, thisArg */) {
             if (this == null)                   throw new TypeError('Array.prototype.find called on null or undefined');
             if (typeof callback !== "function") throw new TypeError('callback must be a function');
 
-            var i;
-            var list = Object(this);
-            var length = list.length >>> 0;
+            var that = Object(this);
+            var length = that.length >>> 0;
             var thisArg = arguments[1];
-            var value;
         
-            for(i=length-1; i>=0; i--) {
-                value = list[i];
-                if (callback.call(thisArg, value, i, list)) {
-                    return value;
+            let i = length - 1;
+            while (i > -1) {
+                if (i in that && callback.call(thisArg, that[i], i, that)) {
+                    return that[i];
                 }
+                i--;
             }
             return undefined;
         },
         // ECMA-262, Edition 5, 15.4.4.18
         // Référence: http://es5.github.io/#x15.4.4.18
-        forEach:            function (callback, thisArg) {
-            let i, value;
+        forEach:            function (callback /*, thisArg */) {
+            if (this === null) { throw new TypeError("Array.prototype.forEach called on null or undefined"); }
+            if (typeof callback !== "function") { throw new TypeError("The first argument must be a Function."); }
 
-            if (this === null) { throw new TypeError("Array.forEach called on null or undefined"); }
-            if (!aa.isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
-
+            // const that = Object(this);
             const that = Object(this);
             const len = that.length ?? 0;
+            const thisArg = arguments ?? void 0;
 
-            i = 0;
+            let i = 0;
             while (i < len) {
                 if (i in that) {
-                    value = that[i];
-                    callback.call(thisArg, value, i, that);
+                    callback.call(thisArg, that[i], i, that);
                 }
                 i++;
             }
@@ -4102,164 +4073,131 @@ const aa = {};
             if (!aa.isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
 
             const that = Object(this);
-            let i, value, result;
+            let result;
+            const len = that.length >>> 0;
 
-            for (let i=0; i<that.length; i++) {
+            let i= 0 ;
+            while (i < len) {
                 if (i in that) {
-                    value = that[i];
-                    const result = callback.call(spec.context, value, i, that);
+                    result = callback.call(spec.context, that[i], i, that);
                     if (spec.breakable) {
                         if (result !== undefined) {
                             return result;
                         }
                     }
                 }
+                i++;
             }
             return undefined;
         },
         // based on Array.forEach
-        forEachReverse:     function (callback, thisArg) {
-            var T, k;
-            var kValue;
-
+        forEachReverse:     function (callback /*, thisArg */) {
             if (this === null) { throw new TypeError("Array.forEach called on null or undefined"); }
             if (typeof callback !== "function") { throw new TypeError("First argument must be a Function."); }
 
-            var that = Object(this);
-            var len = that.length >>> 0;
+            const that = Object(this);
+            const len = that.length >>> 0;
 
-            if (arguments.length > 1) {
-                T = thisArg;
-            }
+            const thisArg = arguments[1] ?? void 0;
 
-            for (k=len-1; k>=0; k--) {
-                if (k in that) {
-                    kValue = that[k];
-                    callback.call(T, kValue, k, that);
+            let i = len - 1;
+            while (i > -1) {
+                if (i in that) {
+                    callback.call(thisArg, that[i], i, that);
                 }
+                i--;
             }
         },
         // Production steps / ECMA-262, Edition 5, 15.4.4.19
         // Référence : http://es5.github.io/#x15.4.4.19
-        map:                function (callback, thisArg) {
+        map:                function (callback /*, thisArg */) {
+            if (this == null) throw new TypeError('Array.map called on null or undefined');
+            if (typeof callback !== "function") { throw new TypeError("The first argument must be a Function."); }
 
-            var T, A, k;
-            var kValue, mappedValue;
-            var O = Object(this);
-            var len = O.length >>> 0;
+            // let value:
+            const that = Object(this);
+            const len = that.length >>> 0;
+            const result = new Array(len);
+            const thisArg = arguments[1] ?? void 0;
 
-            if (this == null) {
-              throw new TypeError('Array.map called on null or undefined');
+            let i = 0;
+            while (i < len) {
+                if (i in that) {
+                    result[i] = callback.call(thisArg, that[i], i, that);
+                }
+                i++;
             }
-
-            if (typeof callback !== "function") {
-                throw new TypeError(callback + ' is not a fonction');
-            }
-
-            if (arguments.length > 1) {
-                T = thisArg;
-            }
-
-            A = new Array(len);
-            k = 0;
-
-            while(k < len) {
-              if (k in O) {
-                kValue = O[k];
-                mappedValue = callback.call(T, kValue, k, O);
-                A[k] = mappedValue;
-              }
-              k++;
-            }
-            return A;
+            return result;
         },
         // Production steps, ECMA-262, Edition 5, 15.4.4.21
         // Référence : http://es5.github.io/#x15.4.4.21
-        reduce:             function (callback /*, accumulator, thisArg */) {
-            "use strict";
-            
+        reduce:             function (callback, accumulator, thisArg) {
             if (this === null || this === undefined) {  throw new TypeError('Array.reduce called on null or undefined'); }
             if (typeof callback !== "function") {       throw new TypeError('Callback argument must be a Function'); }
             
-            let accumulator,
-                thisArg,
-                value;
-            
             const that = Object(this);
-            
-            if (arguments.length > 1) { accumulator = arguments[1]; }
-            if (arguments.length > 2) { thisArg = arguments[2]; }
+            const len = that.length >>> 0;
 
-            for (let i=0; i<that.length; i++) {
-                value = that[i];
-                accumulator = callback.call(thisArg, accumulator, value, i, that);
+            let i = 0;
+            while (i < len) {
+                if (i in that) {
+                    accumulator = callback.call(thisArg, accumulator, that[i], i, that);
+                }
+                i++;
             }
             return accumulator;
         },
         // Production steps, ECMA-262, Edition 5, 15.4.4.21
         // Référence : http://es5.github.io/#x15.4.4.21
-        reduceReverse:      function (callback /*, initialValue */) {
-            "use strict";
+        reduceReverse:      function (callback, accumulator, thisArg) {
+            if (this === null || this === undefined) {  throw new TypeError('Array.reduceReverse called on null or undefined'); }
+            if (typeof callback !== "function") {       throw new TypeError('Callback argument must be a Function'); }
             
-            if (this === null) {
-                throw new TypeError('Array.reduce called on null or undefined');
-            }
-            if (typeof callback !== "function") {
-                throw new TypeError(callback + ' is not a fonction');
-            }
-            var t = Object(this), len = t.length >>> 0, k = 0, value;
-            if (arguments.length == 2) {
-                value = arguments[1];
-            }
-            else {
-                while(k < len && ! (k in t)) {
-                    k++;
-                }
-                if (k >= len) {
-                    throw new TypeError('Réduction de tableau vide sans valeur initiale');
-                }
-                value = t[k++];
-            }
-            for(k=len-1; k>=0; k--) {
-            // for(; k < len; k++) {
-                if (k in t) {
-                    value = callback(value, t[k], k, t);
-                }
-            }
-            return value;
-        },
-        // Production ECMA-262, Edition 5, 15.4.4.17
-        // Référence : http://es5.github.io/#x15.4.4.17
-        some:               function (func /*, thisArg */) {
-            "use strict";
-            if (this == null) { throw new TypeError("Array.prototype.some called on null ou undefined"); }
-            if (typeof func !== "function") { throw new TypeError("First argument must be a Function."); }
-
-            let i;
             const that = Object(this);
             const len = that.length >>> 0;
 
-            const thisArg = arguments.length > 1 ? arguments[1] : void 0;
-            for (i=0; i<len; i++) {
-                if (i in that && func.call(thisArg, that[i], i, that)) {
+            let i = len - 1;
+            while (i > -1) {
+                if (i in that) {
+                    accumulator = callback.call(thisArg, accumulator, that[i], i, that);
+                }
+                i--;
+            }
+            return accumulator;
+        },
+        // Production ECMA-262, Edition 5, 15.4.4.17
+        // Référence : http://es5.github.io/#x15.4.4.17
+        some:               function (callback, thisArg) {
+            if (this == null) { throw new TypeError("Array.prototype.some called on null ou undefined"); }
+            if (typeof callback !== "function") { throw new TypeError("First argument must be a Function."); }
+
+            const that = Object(this);
+            const len = that.length >>> 0;
+
+            let i = 0;
+            while (i < len) {
+                if (i in that && callback.call(thisArg, that[i], i, that)) {
                     return true;
                 }
+                i++;
             }
             return false;
         },
         // Production steps of ECMA-262, Edition 5, 15.4.4.22
         // Reference: http://es5.github.io/#x15.4.4.22
         reduceRight:        function (callback /*, initialValue */) {
-            "use strict";
             if (null === this || typeof this === "undefined") { throw new TypeError("Array.reduce called on null or undefined"); }
             if (typeof callback !== "function") { throw new TypeError(callback + " is not a function"); }
 
-            let that = Object(this), len = that.length >>> 0, k = len - 1, value;
+            let that = Object(this),
+                len = that.length >>> 0,
+                k = len - 1,
+                value;
             if (arguments.length > 1) {
                 value = arguments[1];
             }
             else {
-                while(k >= 0 && !(k in that)) {
+                while(k > -1 && !(k in that)) {
                     k--;
                 }
                 if (k < 0) {
@@ -4267,7 +4205,7 @@ const aa = {};
                 }
                 value = that[k--];
             }
-            for(; k >= 0; k--) {
+            for(; k > -1; k--) {
                 if (k in that) {
                     value = callback(value, that[k], k, that);
                 }
