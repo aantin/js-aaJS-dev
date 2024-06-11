@@ -531,6 +531,7 @@ const aa = {};
                 const ErrorClass = argv.find(arg => !aa.isNumber(arg) && !aa.isString(arg)) ?? TypeError;
 
                 const writeMessage = function (position, str) {
+                    console.trace("Invalid argument", arg);
                     const positions = [
                         "First argument",
                         "Second argument",
@@ -1054,6 +1055,7 @@ const aa = {};
                 typeof list === "string" || 
                 (
                     typeof list === "object"
+                    && !!list
                     && typeof (list.length) === "number"
                     && (list.length === 0
                         || (
@@ -1234,6 +1236,9 @@ const aa = {};
                 aa.isString(str)
                 && str.trim().length > 0
             );
+        },
+        now:                        function () {
+            return (window?.performance ?? Date)?.now();
         },
         purgeEventHandlers:         function (node) {
             aa.walkTheDOM(node, function (elt) {
@@ -2956,6 +2961,63 @@ const aa = {};
         },
     }, {force: true});
     aa.deploy(aa, {
+        class: (() => {
+            const {cut, get, set} = aa.mapFactory();
+            return {
+                getEmitter:     function (accessors={}) {
+                    aa.arg.test(accessors, aa.verifyObject({
+                        cut: aa.isFunction,
+                        get: aa.isFunction,
+                        set: aa.isFunction,
+                    }), "'accessors'");
+                    const cutter = accessors.cut ?? cut;
+                    const getter = accessors.get ?? get;
+                    const setter = accessors.set ?? set;
+
+                    return (function (eventName, data) {
+                        aa.arg.test(eventName, aa.nonEmptyString, "'eventName'");
+                        eventName = eventName.trim();
+
+                        getter(this, "listeners")
+                        ?.[eventName]
+                        ?.forEach(callback => {
+                            const event = null;
+                            callback(event, data, this);
+                        });;
+                    });
+                },
+                getListener:    function (accessors={}) {
+                    aa.arg.test(accessors, aa.verifyObject({
+                        cut: aa.isFunction,
+                        get: aa.isFunction,
+                        set: aa.isFunction,
+                    }), "'accessors'");
+                    const cutter = accessors.cut ?? cut;
+                    const getter = accessors.get ?? get;
+                    const setter = accessors.set ?? set;
+
+                    return (function (eventName, callback) {
+                        aa.arg.test(eventName, aa.nonEmptyString, "'eventName'");
+                        aa.arg.test(callback, aa.isFunction, "'callback'");
+                        eventName = eventName.trim();
+
+                        if (!getter(this, "listeners")) {
+                            setter(this, "listeners", {});
+                        }
+                        getter(this, "listeners")[eventName] ??= [];
+                        getter(this, "listeners")[eventName].push(callback);
+                    });
+                },
+                hydrate:        function (spec={}) {
+                    aa.arg.test(spec, aa.isObject, "'spec'");
+                    spec.forEach((value, key) => {
+                        if (key in this) {
+                            this[key] = value;
+                        }
+                    });
+                },
+            };
+        })(),
         event: (() => {
             const id = aa.uid();
             return {
@@ -3008,8 +3070,10 @@ const aa = {};
                         eventName = eventName.trim();
                         if (listeners.hasOwnProperty(eventName)) {
                             listeners[eventName].forEach(callback => {
-                                const event = null; // A future event, some day...
-                                callback(event, data, this);
+                                setTimeout(() => {
+                                    const event = null; // A future event, some day...
+                                    callback(event, data, this);
+                                }, 0);
                             });
                         }
                     };
