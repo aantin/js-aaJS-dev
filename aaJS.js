@@ -3691,30 +3691,21 @@ const aa = {};
     });
 
     // ARRAY functions:
-    if (Array.first                             === undefined) { 
-
-        // Array.prototype.first = Array.prototype.getLast;
+    if (Array.prototype.first                   === undefined) { 
         Object.defineProperty(Array.prototype,'first',{
-            get: function (){
-                return (
-                    this.length > 0
-                    ? this[0]
-                    : undefined
-                );
+            get: function () {
+                return this.length > 0 ? this[0] : undefined;
             }
         });
     }
-    if (Array.last                              === undefined) { 
-
-        // Array.prototype.last = Array.prototype.getLast;
+    if (Array.prototype.last                    === undefined) { 
         Object.defineProperty(Array.prototype, "last", {
-            get: function (){
-                return this.getLast();
+            get: function () {
+                return this.length > 0 ? this[this.length - 1] : undefined;
             }
         });
     }
     if (Array.aa                                === undefined) {
-
         Array.aa = {};
     }
     aa.deploy(Array.aa, {
@@ -3737,46 +3728,20 @@ const aa = {};
                 this.pop();
             }
         },
-        getFirst:           function () {
-            if (this.length) {
-                return this[0];
-            }
-            else {
-                throw new TypeError("Array.getFirst can not be called on empty Array.");
-                return null;
-            }
-        },
-        getLast:            function () {
-            if (this.length) {
-                return this[this.length-1];
-            }
-            else {
-                return undefined;
-            }
-        },
-        has:                function (p) {
-            /**
-             * @param {any} 
-             */
-            
-            // Warning: returns false if given parameter is an object with indexes in a different order!
+        has:                function (item, stringified=false) {
+            if (typeof stringified !== "boolean") throw new TypeError("The second argument must be a Boolean.");
+            if (stringified) {
+                // Warning: returns false if given parameter is an object with indexes in a different order!
 
-            if (aa.isObject(p)) {
-                var found = this.find(function (v) {
-                    return (JSON.stringify(v) === JSON.stringify(p) && v.constructor === p.constructor);
-                },this);
-                return found ? true : false;
-            } else if (aa.isFunction(p)) {
-                var found = this.find(function (v) {
-                    return (v.toString() === p.toString());
-                },this);
-                return found ? true : false;
-            } else {
-                return this.indexOf(p) >= 0;
+                if (aa.isObject(item)) {
+                    return this.some(v => JSON.stringify(v) === JSON.stringify(item) && v.constructor === item.constructor);
+                } else if (aa.isFunction(item)) {
+                    return this.some(v => v.toString() === item.toString());
+                }
             }
+            return this.indexOf(item) > -1;
         },
         hasKey:             function (param) {
-
             return (this[param] !== undefined);
         },
         hasKeyString:       function (param){
@@ -3958,8 +3923,8 @@ const aa = {};
             if (this == null) { throw new TypeError("this vaut null ou n est pas défini"); }
             if (typeof callback !== "function") { throw new TypeError("First argument must be a Function."); }
 
-            var that = Object(this);
-            var len = that.length >>> 0;
+            const that = Object(this);
+            const len = that.length >>> 0;
             const thisArg = arguments[1] ?? void 0;
 
             let i = 0;
@@ -3978,13 +3943,12 @@ const aa = {};
 
             const that = Object(this);
             const len = that.length >>> 0;
+            const thisArg = arguments[1] ?? void 0;
 
             // NOTE : fix to avoid very long loop on negative length value
-
             if (len > that.length) throw new TypeError();
 
             const result = [];
-            const thisArg = arguments[1] ?? void 0;
 
             let i = 0;
             while (i < len) {
@@ -4002,11 +3966,11 @@ const aa = {};
             if (typeof callback !== "function") throw new TypeError('callback must be a function');
 
             const that = Object(this);
-            const length = that.length >>> 0;
+            const len = that.length >>> 0;
             const thisArg = arguments[1] ?? void 0;
         
             let i = 0;
-            while (i < length) {
+            while (i < len) {
                 if (i in that && callback.call(thisArg, that[i], i, that)) {
                     return that[i];
                 }
@@ -4022,10 +3986,10 @@ const aa = {};
             if (typeof callback !== "function") throw new TypeError('callback must be a function');
 
             var that = Object(this);
-            var length = that.length >>> 0;
+            var len = that.length >>> 0;
             var thisArg = arguments[1];
         
-            let i = length - 1;
+            let i = len - 1;
             while (i > -1) {
                 if (i in that && callback.call(thisArg, that[i], i, that)) {
                     return that[i];
@@ -4043,7 +4007,7 @@ const aa = {};
             // const that = Object(this);
             const that = Object(this);
             const len = that.length ?? 0;
-            const thisArg = arguments ?? void 0;
+            const thisArg = arguments[1] ?? void 0;
 
             let i = 0;
             while (i < len) {
@@ -4155,7 +4119,6 @@ const aa = {};
 
             const that = Object(this);
             const len = that.length >>> 0;
-
             const thisArg = arguments[1] ?? void 0;
 
             let i = len - 1;
@@ -4277,9 +4240,9 @@ const aa = {};
         // Production steps of ECMA-262, Edition 5, 15.2.3.5
         // Reference: https://es5.github.io/#x15.2.3.5
         create: (function () {
-            function Temp() {}
+            function Temp () {}
     
-            var hasOwn = Object.prototype.hasOwnProperty;
+            const hasOwn = Object.prototype.hasOwnProperty;
     
             return function (O) {
                 if (typeof O != "object") {
@@ -4287,12 +4250,12 @@ const aa = {};
                 }
         
                 Temp.prototype = O;
-                var obj = new Temp();
+                const obj = new Temp();
                 Temp.prototype = null; // Let's not keep a stray reference to O...
         
                 if (arguments.length > 1) {
-                    var Properties = Object(arguments[1]);
-                    for (var prop in Properties) {
+                    const Properties = Object(arguments[1]);
+                    for (let prop in Properties) {
                         if (hasOwn.call(Properties, prop)) {
                             obj[prop] = Properties[prop];
                         }
@@ -5492,37 +5455,7 @@ const aa = {};
             });
         }
         aa.deploy(LinkedList.prototype, {
-            /**
-             * Add as many value(s) to the list as provided argument(s).
-             * @param   any value1
-             * @param   any value2
-             * @param   any ...
-             */
-            add:        function (/* ...values */) {
-                const len = arguments.length >>> 0;
-                let i = 0;
-                let size = get(this, "size");
-                while (i < len) {
-                    if (i in arguments) {
-                        const authenticate = get(this, "authenticate");
-                        if (authenticate && !authenticate(arguments[i])) throw new LinkedListTypeError("The provided value(s) must comply with the 'authenticate' Function.");
-
-                        const node = new LinkedListNode(arguments[i], this);
-                        if (this.head === null) {
-                            set(this, "head", node);
-                        }
-                        if (size > 0) {
-                            const trail = get(this, "trail");
-                            set(trail, "next", node);
-                            set(node, "previous", trail);
-                        }
-                        size ++;
-                        set(this, "size", size);
-                        set(this, "trail", node);
-                    }
-                    i++;
-                }
-            },
+            // Loop methods:
             every:      function (callback, thisArg) {
                 const that = Object(this);
                 let node = get(this, "head");
@@ -5578,6 +5511,16 @@ const aa = {};
                     i++;
                 }
             },
+            map:        function (callback, thisArg) {
+                const that = Object(this);
+                let node = get(this, "head");
+                let i = 0;
+                while (node) {
+                    node.value = callback.call(thisArg, node, i, that);
+                    node = node.next;
+                    i++;
+                }
+            },
             reduce:     function (callback, accumulator, thisArg) {
                 const that = Object(this);
                 let node = get(this, "head");
@@ -5600,6 +5543,50 @@ const aa = {};
                 }
                 return false;
             },
+
+            // Setters:
+            /**
+             * Add as many value(s) to the list as provided argument(s).
+             * @param   any value1
+             * @param   any value2
+             * @param   any ...
+             */
+            add:        function (/* ...values */) {
+                const len = arguments.length >>> 0;
+                let i = 0;
+                let size = get(this, "size");
+                while (i < len) {
+                    if (i in arguments) {
+                        const authenticate = get(this, "authenticate");
+                        if (authenticate && !authenticate(arguments[i])) throw new LinkedListTypeError("The provided value(s) must comply with the 'authenticate' Function.");
+
+                        const node = new LinkedListNode(arguments[i], this);
+                        if (this.head === null) {
+                            set(this, "head", node);
+                        }
+                        if (size > 0) {
+                            const trail = get(this, "trail");
+                            set(trail, "next", node);
+                            set(node, "previous", trail);
+                        }
+                        size ++;
+                        set(this, "size", size);
+                        set(this, "trail", node);
+                    }
+                    i++;
+                }
+            },
+            clear:      function () {
+                set(this, "head", null);
+                set(this, "trail", null);
+                set(this, "size", 0);
+            },
+            reset:      function () {
+                this.clear();
+                set(this, "authenticate", null);
+            },
+
+            // Getters:
             toArray:    function () {
                 const result = [];
                 let node = get(this, "head");
