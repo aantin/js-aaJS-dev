@@ -2905,6 +2905,125 @@ const aa = {};
                 throw new ErrorClass(message);
             }
         },
+        scopeFactory:               (() => {
+            return function () {
+                const scope = new WeakMap();
+                function privateScope ($this, blueprint) {
+                    if (scope.get($this) === undefined) scope.set($this, {});
+                    const proxy = new Proxy(scope.get($this), {
+                        get (target, prop, receiver) {
+                            return scope.get($this)[prop];
+                        },
+                        set (target, prop, value) {
+                            scope.get($this)[prop] = value;
+                            return true;
+                        },
+                    });
+                    if (blueprint) {
+                        if (typeof blueprint !== "object") throw new TypeError("The 'blueprint' argument must be an Object.");
+
+                        let func, value;
+
+                        // Attributes:
+                        blueprint.accessors ??= {};
+                        blueprint.accessors.publics ??= {};
+                        blueprint.accessors.privates ??= {};
+                        blueprint.accessors.read ??= {};
+                        blueprint.accessors.execute ??= {};
+                        if (typeof blueprint.accessors !== "object") throw new TypeError("The 'blueprint.accessors' argument must be an Object.");
+                        if (Object.keys(blueprint.accessors).some(visibility => !visibility.match(/^publics|privates|read|execute$/))) throw new TypeError(`Invalid 'blueprint.accessor'.`);
+                        if (Object.keys(blueprint.accessors).some(visibility => typeof blueprint.accessors[visibility] !== "object")) throw new TypeError("The 'blueprint.accessors' argument must be an Object of Objects.");
+
+                        // Methods:
+                        blueprint.methods ??= {};
+                        blueprint.methods.publics ??= {};
+                        blueprint.methods.privates ??= {};
+                        if (typeof blueprint.methods !== "object") throw new TypeError("The 'blueprint.methods' argument must be an Object.");
+                        if (Object.keys(blueprint.methods).some(visibility => !visibility.match(/^publics|privates$/))) throw new TypeError(`Invalid 'blueprint.methods'.`);
+                        if (Object.keys(blueprint.methods).some(visibility =>
+                            typeof blueprint.methods[visibility] !== "object"
+                            || Object.keys(blueprint.methods[visibility]).some(name => typeof blueprint.methods[visibility][name] !== "function")
+                        )) throw new TypeError("The 'blueprint.methods' argument must be an Object of Objects of Functions.");
+
+                        // Methods:
+                        blueprint.statics ??= {};
+                        if (typeof blueprint.statics !== "object") throw new TypeError("The 'blueprint.statics' argument must be an Object.");
+
+                        // Public accessors:
+                        Object.keys(blueprint.accessors.publics).forEach(attr => {
+                            proxy[attr] = blueprint.accessors.publics[attr];
+                            if (!$this.hasOwnProperty(attr)) {
+                                Object.defineProperty($this, attr, {
+                                    get () {
+                                        return proxy[attr];
+                                    },
+                                    set (value) {
+                                        proxy[attr] = value;
+                                    }
+                                });
+                            }
+                        });
+                        
+                        // Read accessors:
+                        Object.keys(blueprint.accessors.read).forEach(attr => {
+                            proxy[attr] = blueprint.accessors.read[attr];
+                            if (!$this.hasOwnProperty(attr)) {
+                                Object.defineProperty($this, attr, {
+                                    get () {
+                                        return proxy[attr];
+                                    }
+                                });
+                            }
+                        });
+                        
+                        // Execute accessors:
+                        Object.keys(blueprint.accessors.execute).forEach(attr => {
+                            const target = scope.get($this);
+                            if (!target.hasOwnProperty(attr)) {
+                                Object.defineProperty(target, attr, {
+                                    get () {
+                                        return blueprint.accessors.execute[attr].call($this);
+                                    }
+                                })
+                            }
+                            if (!$this.hasOwnProperty(attr)) {
+                                Object.defineProperty($this, attr, {
+                                    get () {
+                                        return proxy[attr];
+                                    }
+                                });
+                            }
+                        });
+                        
+                        // Private accessors:
+                        Object.keys(blueprint.accessors.privates).forEach(attr => {
+                            proxy[attr] = blueprint.accessors.privates[attr];
+                        });
+
+                        // Static methods:
+                        Object.keys(blueprint.statics).forEach(attr => {
+                            const Instancer = Object.getPrototypeOf($this)?.constructor;
+                            if (!Instancer) throw new TypeError("Undefined instancer.");
+                            Instancer[attr] = blueprint.statics[attr];
+                        });
+
+                        // Public methods:
+                        Object.keys(blueprint.methods.publics).forEach(attr => {
+                            const Instancer = Object.getPrototypeOf($this)?.constructor;
+                            if (!Instancer) throw new TypeError("Undefined instancer.");
+                            Instancer.prototype[attr] = blueprint.methods.publics[attr];
+                        });
+
+                        // Private methods:
+                        Object.keys(blueprint.methods.privates).forEach(attr => {
+                            proxy[attr] = blueprint.methods.privates[attr];
+                        });
+                    }
+                    return proxy;
+                }
+                return privateScope;
+            }
+        })(),
     }, {force: true});
     aa.deploy(aa, {
         uid:                        (function () {
@@ -3917,7 +4036,8 @@ const aa = {};
             }).length !== 0);
             // return this.every(callback);
         },
-
+    }, {force: true});
+    aa.deploy(Array.prototype, {
         // from MDN:
         every:              function (callback /*, thisArg */) {
             if (this == null) { throw new TypeError("this vaut null ou n est pas défini"); }
@@ -4233,7 +4353,7 @@ const aa = {};
             }
             return value;
         },
-    }, {force: true});
+    });
 
     // OBJECT functions:
     aa.deploy(Object, {
@@ -5143,11 +5263,11 @@ const aa = {};
                 ctx.drawImage(this, 0, 0, width, height);
                 
                 const img = new Image();
-                img.onload = ()=>{
+                img.addEventListener("load", ()=>{
                     if (resolve) {
                         resolve(img);
                     }
-                };
+                });
                 try{
                     img.src = canvas.toDataURL(this.type, 1); // Second argument: quality between 0 & 1
                 }
@@ -5164,10 +5284,10 @@ const aa = {};
                     }
                 }
             };
-            this.onload = ()=>{
+            this.addEventListener("load", ()=>{
                 doOnce();
                 doOnce = ()=>{};
-            };
+            });
             if (!resolve) {
                 return img;
             }
