@@ -5,7 +5,7 @@ const aa = {};
     const versioning = {
         aaJS: {
             version: {
-                version: "3.13.0",
+                version: "3.13.1",
                 dependencies: {}
             }
         }
@@ -5242,32 +5242,33 @@ const aa = {};
 
             return dataUrl;
         },
-        resize:     function (spec) {
-            /**
-             * @param {object} spec
-             * @param {function} resolve (optional)
-             * @param {function} reject (optional)
-             *
-             * return {image}
-             */
-            // ----------------------------------------------------------------
-            const resolve = (arguments && arguments.length>1 && aa.isFunction(arguments[1]) ? arguments[1] : undefined);
-            const reject = (arguments && arguments.length>2 && aa.isFunction(arguments[2]) ? arguments[2] : undefined);
-            // ----------------------------------------------------------------
-            // Compliance:
-            if (!aa.isObject(spec)) { throw new TypeError("First argument must be an Object."); }
-            if (!spec.verify({
-                width: aa.isStrictlyPositiveInt,
-                height: aa.isStrictlyPositiveInt,
-                maxHeight: aa.isStrictlyPositiveInt,
-                maxWidth: aa.isStrictlyPositiveInt,
-                minHeight: aa.isStrictlyPositiveInt,
-                minWidth: aa.isStrictlyPositiveInt
-            })) { throw new TypeError("Given Object is not compliant."); }
-            if (spec.minWidth && spec.maxWidth && spec.minWidth > spec.maxWidth) { throw new TypeError("Conflict between 'minWidth' and 'maxWidth'."); }
-            if (spec.minHeight && spec.maxHeight && spec.minHeight > spec.maxHeight) { throw new TypeError("Conflict between 'minHeight' and 'maxHeight'."); }
-            // ----------------------------------------------------------------
-            let doOnce = ()=>{
+        resize:     (() => {
+            let canvas;
+            return function (spec) {
+                /**
+                 * @param {object} spec
+                 * @param {function} resolve (optional)
+                 * @param {function} reject (optional)
+                 *
+                 * return {image}
+                 */
+                // ----------------------------------------------------------------
+                const resolve = (arguments && arguments.length>1 && aa.isFunction(arguments[1]) ? arguments[1] : undefined);
+                const reject =  (arguments && arguments.length>2 && aa.isFunction(arguments[2]) ? arguments[2] : undefined);
+                // ----------------------------------------------------------------
+                // Compliance:
+                if (!aa.isObject(spec)) { throw new TypeError("First argument must be an Object."); }
+                if (!spec.verify({
+                    width: aa.isStrictlyPositiveInt,
+                    height: aa.isStrictlyPositiveInt,
+                    maxHeight: aa.isStrictlyPositiveInt,
+                    maxWidth: aa.isStrictlyPositiveInt,
+                    minHeight: aa.isStrictlyPositiveInt,
+                    minWidth: aa.isStrictlyPositiveInt
+                })) { throw new TypeError("Given Object is not compliant."); }
+                if (spec.minWidth && spec.maxWidth && spec.minWidth > spec.maxWidth) { throw new TypeError("Conflict between 'minWidth' and 'maxWidth'."); }
+                if (spec.minHeight && spec.maxHeight && spec.minHeight > spec.maxHeight) { throw new TypeError("Conflict between 'minHeight' and 'maxHeight'."); }
+                // ----------------------------------------------------------------
                 // Size:
                 let width, height;
                 if (spec.width && spec.height) {
@@ -5305,22 +5306,16 @@ const aa = {};
                 }
                 // ----------------------------------------------------------------
                 this.setAttribute("crossOrigin", "anonymous");
-                const canvas = document.createElement("canvas");
+                if (!canvas) canvas = document.createElement("canvas");
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext("2d");
                 ctx.drawImage(this, 0, 0, width, height);
                 
                 const img = new Image();
-                img.addEventListener("load", ()=>{
-                    if (resolve) {
-                        resolve(img);
-                    }
-                });
-                try{
+                try {
                     img.src = canvas.toDataURL(this.type, 1); // Second argument: quality between 0 & 1
-                }
-                catch(e) {
+                } catch(e) {
                     const err = {
                         type: "critical",
                         text: "Invalid dataURL"
@@ -5332,15 +5327,25 @@ const aa = {};
                         return undefined;
                     }
                 }
+                img.decode()
+                .then(() => {
+                    if (resolve) {
+                        // img.style.height = "48px";
+                        // img.style.position = "fixed";
+                        // img.style.top = "0";
+                        // img.style.left = "0";
+                        // document.body.append(img);
+                        resolve(img);
+                    }
+                })
+                .catch(err => {
+                    throw err;
+                });
+                if (!resolve) {
+                    return img;
+                }
             };
-            this.addEventListener("load", ()=>{
-                doOnce();
-                doOnce = ()=>{};
-            });
-            if (!resolve) {
-                return img;
-            }
-        }
+        })(),
     });
     if (self.window) aa.deploy(self.window, {
         resizeImg: function (options) {
@@ -6258,5 +6263,9 @@ const aa = {};
     // ----------------------------------------------------------------
     JS.accessors.id = aa.uid();
     const {cut, get, set} = aa.mapFactory();
+    const write = aa.writer({
+        namespace: "aa",
+        style: "color: #888;",
+    });
     // ----------------------------------------------------------------
 })();
