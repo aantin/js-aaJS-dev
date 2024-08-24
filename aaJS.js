@@ -5,7 +5,7 @@ const aa = {};
     const versioning = {
         aaJS: {
             version: {
-                version: "3.11.0",
+                version: "3.13.0",
                 dependencies: {}
             }
         }
@@ -564,7 +564,15 @@ const aa = {};
                 }
                 return true;
             }
-        })
+        }),
+        fs: {
+            concat: function (...paths) {
+                return (paths
+                    .map(path => path.replace(/(^\/+)|(\/+$)/g, ''))
+                    .join('/')
+                );
+            },
+        },
     }, {force: true});
     aa.deploy(aa, {
         addHTML:                    function (identifiant, html) {
@@ -1670,6 +1678,40 @@ const aa = {};
                 node = node.nextSibling;
             }
         },
+        writer:                    function ({namespace="", style="", indent=0}) {
+            if (typeof namespace !== "string") throw new TypeError("The 'namespace' property must be a String.");
+            if (typeof style !== "string") throw new TypeError("The 'style' property must be a String.");
+            if (typeof indent !== "number" || Math.floor(indent) !== indent) throw new TypeError("The 'indent' property must be a positive Integer.");
+            style = {
+                number:     "color: #0d25a0;",
+                operator:   "color: #bbb;",
+                text:       style,
+                
+                quote:      text => `%c'%c${text}%c'%c`
+            };
+
+            const charsByTab = 2;
+
+            return function (action, data, ...optional) {
+                const args = [`${("").padStart(charsByTab * indent, " ")}%c${(`${namespace ? `${namespace}.` : ""}${action ? `${action} ${arguments.length > 1 ? "▶" : ""}` : ""}`).padStart(0, " ")}${aa.isString(data) ? ` ${style.quote(data)}` : ""}`, style.text];
+                if (aa.isString(data)) args.push(style.operator, style.text, style.operator, style.text);
+                if (arguments.length > 1 && !aa.isString(data)) args.push(data);
+                optional = optional.reverse()
+                optional.forEachReverse((item, i) => {
+                    if (typeof item === "string") {
+                        args[0] += `%c, ${style.quote(item)}`;
+                        args.push(style.operator, style.operator, style.text, style.operator, style.text);
+                        optional.splice(i, 1);
+                    } else if (typeof item === "number") {
+                        args[0] += `%c, %c${item}%c`;
+                        args.push(style.operator, style.number, style.text);
+                        optional.splice(i, 1);
+                    }
+                });
+                args.push(...optional);
+                log.apply(null, args);
+            };
+        },
     }, {force: true});
     aa.deploy(aa, {
         defineAccessors:            function (accessors /*, spec */) {
@@ -1704,37 +1746,37 @@ const aa = {};
                     const getter = () => {
                         return spec.getter(this, key);
                     };
-                    Object.defineProperty(getter, 'name', {get: () => `get${key.firstToUpper()}`});
+                    Object.defineProperty(getter, "name", {get: () => `get${key.firstToUpper()}`});
                     const setter = value => {
-                        const setterName = 'set'+key.firstToUpper();
+                        const setterName = "set"+key.firstToUpper();
                         if (typeof this[setterName] === 'function') {
                             this[setterName].call(this, value);
                         } else {
                             console.warn("Setter '"+key+"' not implemented.");
                         }
                     };
-                    Object.defineProperty(setter, 'name', {get: () => `set${key.firstToUpper()}`});
+                    Object.defineProperty(setter, "name", {get: () => `set${key.firstToUpper()}`});
 
                     switch (accessor) {
-                        case 'publics':
+                        case "publics":
                             Object.defineProperty(this, key, {
                                 enumerable: true,
                                 get: getter,
                                 set: setter
                             });
                             break;
-                        case 'read':
+                        case "read":
                             Object.defineProperty(this, key, {
                                 enumerable: true,
                                 get: getter
                             });
                             break;
-                        case 'write':
+                        case "write":
                             Object.defineProperty(this, key, {
                                 set: setter
                             });
                             break;
-                        case 'execute':
+                        case "execute":
                             Object.defineProperty(this, key, {
                                 enumerable: true,
                                 get: () => spec.getter(this, key).call(this)
@@ -3028,12 +3070,13 @@ const aa = {};
     aa.deploy(aa, {
         uid:                        (function () {
             let x = 0;
-            return function (length=null /*, spec={} */) {
-                const spec = aa.arg.optional(arguments, 1, {}, aa.verifyObject({
+            const indexes = {};
+            return function (length=null /*, options={} */) {
+                const options = aa.arg.optional(arguments, 1, {}, aa.verifyObject({
                     hex: aa.isBool
                 }));
                 // Options:
-                if (!spec.hasOwnProperty('hex')) { spec.hex = false; }
+                if (!options.hasOwnProperty('hex')) { options.hex = false; }
 
                 let uid = '';
 
@@ -3054,7 +3097,7 @@ const aa = {};
                     aa.arg.test(length, aa.isStrictlyPositiveInt, "'length'");
 
                     let chars = '0123456789abcdef';
-                    if (!spec.hex) { chars += 'ghijklmnopqrstuvwxyz'; }
+                    if (!options.hex) { chars += 'ghijklmnopqrstuvwxyz'; }
 
                     for (let i=0; i<length; i++) {
                         const index = Math.floor(chars.length*Math.random());
@@ -3062,6 +3105,10 @@ const aa = {};
                         uid += char;
                     }
                 }
+                while (indexes[uid]) {
+                    uid = aa.uid(length, options);
+                }
+                indexes[uid] = true;
                 return uid;
             };
         })(),
@@ -3189,10 +3236,12 @@ const aa = {};
                         eventName = eventName.trim();
                         if (listeners.hasOwnProperty(eventName)) {
                             listeners[eventName].forEach(callback => {
-                                setTimeout(() => {
-                                    const event = null; // A future event, some day...
-                                    callback(event, data, this);
-                                }, 0);
+                                const event = new aa.CustomEvent({
+                                    data,
+                                    type: eventName,
+                                    target: this,
+                                });
+                                callback(event, data, this);
                             });
                         }
                     };
