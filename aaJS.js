@@ -5,7 +5,7 @@ const aa = {};
     const versioning = {
         aaJS: {
             version: {
-                version: "3.13.1",
+                version: "3.13.2",
                 dependencies: {}
             }
         }
@@ -1693,6 +1693,7 @@ const aa = {};
             const charsByTab = 2;
 
             return function (action, data, ...optional) {
+                if (aa.settings?.production) return;
                 const args = [`${("").padStart(charsByTab * indent, " ")}%c${(`${namespace ? `${namespace}.` : ""}${action ? `${action} ${arguments.length > 1 ? "▶" : ""}` : ""}`).padStart(0, " ")}${aa.isString(data) ? ` ${style.quote(data)}` : ""}`, style.text];
                 if (aa.isString(data)) args.push(style.operator, style.text, style.operator, style.text);
                 if (arguments.length > 1 && !aa.isString(data)) args.push(data);
