@@ -5,7 +5,7 @@ const aa = {};
     const versioning = {
         aaJS: {
             version: {
-                version: "3.13.2",
+                version: "3.13.3",
                 dependencies: {}
             }
         }
@@ -3977,9 +3977,12 @@ const aa = {};
                 .join(options.default)
             );
         },
-        pushUnique:         function (item) {
-            if (this.indexOf(item) < 0) {
-                this.push(item);
+        pushUnique:         function (...items) {
+            for (let i = 0, item; i < items.length; i++) {
+                item = items[i];
+                if (this.indexOf(item) < 0) {
+                    this.push(item);
+                }
             }
             return this.length;
         },
