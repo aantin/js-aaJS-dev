@@ -5,7 +5,7 @@ const aa = {};
     const versioning = {
         aaJS: {
             version: {
-                version: "3.13.3",
+                version: "3.14.0",
                 dependencies: {}
             }
         }
@@ -4078,6 +4078,19 @@ const aa = {};
             }
 
             return undefined;
+        },
+        removeDuplicates:   function () {
+            const arr = [];
+            const that = Object(this);
+            const len = that.length ?? 0;
+            let i = 0;
+            while (i < len) {
+                if (i in that) {
+                    arr.pushUnique(that[i]);
+                }
+                i++;
+            }
+            return arr;
         },
         verify:             function (callback){
             if (!aa.isFunction(callback)) { throw new TypeError("Argument must be a Function."); }
