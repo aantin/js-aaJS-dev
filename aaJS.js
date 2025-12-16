@@ -4957,9 +4957,7 @@ const aa = {};
             
             return err.length === 0;
         },
-
         // ----------------------------------------------------------------
-        // DOM functions:
         clear:              function () {
             aa.arg.test(this, aa.isNode, ": 'clear' method can not be called on an Object that is not a DOM Element.");
             
@@ -5169,7 +5167,11 @@ const aa = {};
             if (!aa.isArrayOfStrings(keys)) { throw new TypeError("Argument must be an Array of Strings."); }
 
             return this.filter((v, k)=>{ return !keys.has(k); });
-        }
+        },
+    }, {force: true});
+    // ----------------------------------------------------------------
+    // DOM Elements:
+    aa.deploy(HTMLElement.prototype, {
     }, {force: true});
 
     // Set a label to some functions:
