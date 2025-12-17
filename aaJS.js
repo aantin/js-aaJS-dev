@@ -499,7 +499,7 @@ const aa = {};
             }
         }),
         arg: Object.freeze({
-            optional:    function (args, index, defaultValue /*, condition=()=>true, strict=false */) {
+            optional (args, index, defaultValue /*, condition=()=>true, strict=false */) {
 
                 const condition = arguments && arguments.length > 3 ? arguments[3] : () => true;
                 const strict = arguments && arguments.length > 4 ? arguments[4] : false;
@@ -517,7 +517,7 @@ const aa = {};
                     : defaultValue
                 );
             },
-            test:   function (arg, tester /* [, position [, message [, ErrorClass]]] */) {
+            test (arg, tester /* [, position [, message [, ErrorClass]]] */) {
                 if (!aa.isFunction(tester) && !aa.isBool(tester)) { throw new TypeError("Second argument must be a Function."); }
 
                 let i;
@@ -563,7 +563,13 @@ const aa = {};
                     return false;
                 }
                 return true;
-            }
+            },
+            testerBy (ErrorClass, CLI) {
+                aa.arg.test(ErrorClass, arg => aa.isFunction(arg) && !!arg.name?.match(/Error$/), "'ErrorClass'");
+                return function (obj, validator, ...args) {
+                    aa.arg.test(obj, validator, ...args, ErrorClass);
+                };
+            },
         }),
         fs: {
             concat: function (...paths) {
