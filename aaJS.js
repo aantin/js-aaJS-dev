@@ -32,7 +32,7 @@ const aa = {};
     const JS = {
         accessors: {
             id: null,
-            getKeys:    function (spec={}) {
+            getKeys (spec={}) {
                 aa.arg.test(spec, aa.verifyObject({
                     cut: aa.isFunction,
                     get: aa.isFunction,
@@ -45,7 +45,7 @@ const aa = {};
 
                 return keys ? keys.slice() : [];
             },
-            saveKey:    function (key, spec={}) {
+            saveKey (key, spec={}) {
                 aa.arg.test(spec, aa.verifyObject({
                     cut: aa.isFunction,
                     get: aa.isFunction,
@@ -191,7 +191,7 @@ const aa = {};
                 return results;
             }
         })(),
-        el:                         function (id) {
+        el (id) {
             /**
              * How to call:
              *      el(id)
@@ -249,7 +249,7 @@ const aa = {};
     aa.deploy(aa, {
         geometry: Object.freeze({
             affine: {
-                byTwo:          function (a, b) {
+                byTwo (a, b) {
                     /**
                      * Generate an affine function by two points given.
                      *
@@ -279,7 +279,7 @@ const aa = {};
                 }
             },
             circle: {
-                getBy:          function (spec) {
+                getBy (spec) {
                     aa.arg.test(null, aa.isObject(spec) && spec.verify({
                         center: v => (aa.isArray(v) && v.length === 2),
                         point: v => (aa.isArray(v) && v.length === 2),
@@ -293,7 +293,7 @@ const aa = {};
                     }
                     return undefined;
                 },
-                byThree:        function (a, b, c) {
+                byThree (a, b, c) {
                     /**
                      * Generate a circle's function by three given points.
                      *
@@ -319,7 +319,7 @@ const aa = {};
                         }
                     };
                 },
-                centerByThree:  function (a, b, c) {
+                centerByThree (a, b, c) {
                     /**
                      * Calculates the center coordinates of a circle by three given points.
                      *
@@ -377,7 +377,7 @@ const aa = {};
                 },
             },
             curve: {
-                byThree:        function (a, b, c) {
+                byThree (a, b, c) {
                     /**
                      * Generate a exponential, logarythm or affine function by three points given in ascending order.
                      *
@@ -412,7 +412,7 @@ const aa = {};
                 }
             },
             exp: {
-                byThree:        function (a, b, c) {
+                byThree (a, b, c) {
                     /**
                      * Generate a exponential function by three points given in ascending order.
                      *
@@ -457,7 +457,7 @@ const aa = {};
                 }
             },
             log: {
-                byThree:        function (a, b, c) {
+                byThree (a, b, c) {
                     /**
                      * Generate a logarithm function by three points given in ascending order.
                      *
@@ -572,7 +572,7 @@ const aa = {};
             },
         }),
         fs: {
-            concat: function (...paths) {
+            concat (...paths) {
                 return (paths
                     .map(path => path.replace(/(^\/+)|(\/+$)/g, ''))
                     .join('/')
@@ -581,7 +581,7 @@ const aa = {};
         },
     }, {force: true});
     aa.deploy(aa, {
-        addHTML:                    function (identifiant, html) {
+        addHTML (identifiant, html) {
             el(identifiant, node => {
                 node.innerHTML += html;
             });
@@ -610,7 +610,7 @@ const aa = {};
                 document.head?.appendChild(script);
             };
         })(),
-        addStyleToScript:           function (scriptFilename, styleFilename) {
+        addStyleToScript (scriptFilename, styleFilename) {
             if (!self.document) throw new Error("document not defined.");
 
             const path = aa.findPathOf(scriptFilename);
@@ -623,7 +623,7 @@ const aa = {};
             }
         },
         any:                        () => true,
-        asyncLoop:                  function (length, callback, thisArg=null) {
+        asyncLoop (length, callback, thisArg=null) {
             aa.arg.test(length, aa.isPositiveInt, "'length'");
             aa.arg.test(callback, aa.isFunction, "'callback'");
 
@@ -635,17 +635,17 @@ const aa = {};
                 i++;
             })();
         },
-        b64_to_utf8:                function (param){
+        b64_to_utf8 (param){
             if (!self.window) throw new Error("window not defined.");
             return decodeURIComponent(escape(self.window.atob(param)));
         },
-        copySelectionToClipboard:   function (){
+        copySelectionToClipboard (){
             if (!self.document) throw new Error("document not defined.");
 
             document.execCommand('copy', true);
             return;
         },
-        copyTextToClipboard:        function (parametre){
+        copyTextToClipboard (parametre){
             if (!self.document) throw new Error("document not defined.");
 
             var textareaDOM = document.createElement('textarea');
@@ -658,7 +658,7 @@ const aa = {};
             document.execCommand('copy', true);
             textareaDOM.remove();
         },
-        dataURItoBlob:              function (dataURI, callback){
+        dataURItoBlob (dataURI, callback){
             // convert base64 to raw binary data held in a string
             // doesn't handle URLEncoded DataURIs - see SO answer #6850276 for code that does this
             var byteString = atob(dataURI.split(',')[1]);
@@ -678,11 +678,11 @@ const aa = {};
             var bb = new Blob([ab]);
             return bb;
         },
-        debug:                      function (){
+        debug (){
 
             alert('aa.debug');
         },
-        deprecated:                 function (name) {
+        deprecated (name) {
             /**
              * @param String name
              *
@@ -691,7 +691,7 @@ const aa = {};
             if (!aa.nonEmptyString(name)) { throw new TypeError("Argument must be a non-empty String."); }
             console.warn("Deprecated: '"+name.trim()+"'. This feature is no longer recommended. Avoid using it, and update existing code if possible.");
         },
-        digit:                      function (param, digits) {
+        digit (param, digits) {
             var i;
             if (!aa.isInt(digits)) {
                 return param;
@@ -702,7 +702,7 @@ const aa = {};
             }
             return param;
         },
-        dir:                        function () {
+        dir () {
             if (console && console.dir && arguments && arguments.length) {
                 if (arguments.length > 1) {
                     console.group();
@@ -719,7 +719,7 @@ const aa = {};
             console.log(undefined);
             return false;
         },
-        findPathOf:                 function (filename) {
+        findPathOf (filename) {
             if (!self.document) throw new Error("document not defined.");
 
             const folder = document
@@ -740,7 +740,7 @@ const aa = {};
             ;
             return folder;
         },
-        getCookie:                  function (sName) {
+        getCookie (sName) {
             if (!self.document) throw new Error("document not defined.");
 
             //if (navigator.cookieEnabled)test('navigator.cookieEnabled','enabled');
@@ -757,7 +757,7 @@ const aa = {};
                 return null;
             }
         },
-        getFilename:                function (param) {
+        getFilename (param) {
             if (aa.isString(param)) {
                 var temp = param.split('/');
                 if (temp && temp.length) {
@@ -767,7 +767,7 @@ const aa = {};
             }
             return '???';
         },
-        getScriptFolder:            function (file) {
+        getScriptFolder (file) {
             if (!self.document) throw new Error("document not defined.");
 
             var res = undefined;
@@ -783,7 +783,7 @@ const aa = {};
             });
             return res;
         },
-        getStyleFolder:             function (file) {
+        getStyleFolder (file) {
             if (!self.document) throw new Error("document not defined.");
 
             var res = undefined;
@@ -799,11 +799,11 @@ const aa = {};
             });
             return res;
         },
-        hasOption:                  function (list, option) {
+        hasOption (list, option) {
 
             return list.indexOf(option) > -1;
         },
-        htmlEncode:                 function (str) {
+        htmlEncode (str) {
             var i = str.length,
                 aRet = [];
 
@@ -817,7 +817,7 @@ const aa = {};
             }
             return aRet.join('');    
         },
-        inArray:                    function (list) {
+        inArray (list) {
             aa.arg.test(list, aa.isArray, "'list'");
 
             return addReadonlyProperties(
@@ -829,7 +829,7 @@ const aa = {};
                 },
             );
         },
-        inEnum:                     function (...items) {
+        inEnum (...items) {
             aa.arg.test(items, aa.isArrayOfNonEmptyStrings, "'items'");
 
             return addReadonlyProperties(
@@ -841,7 +841,7 @@ const aa = {};
                 },
             );
         },
-        instanceof:                 function (...Instancers) {
+        instanceof (...Instancers) {
             aa.arg.test(Instancers, aa.isArrayOfFunctions, "'Instancers'");
 
             return addReadonlyProperties(
@@ -853,7 +853,7 @@ const aa = {};
                 },
             );
         },
-        inbetween:                  function (value, min, max){
+        inbetween (value, min, max){
             return (
                 aa.isNumber(value)
                 && aa.isNumber(min)
@@ -861,7 +861,7 @@ const aa = {};
                 && value >= min && value <= max
             );
         },
-        inbetweenStrict:            function (value, min, max){
+        inbetweenStrict (value, min, max){
 
             return (
                 aa.isNumber(value)
@@ -870,7 +870,7 @@ const aa = {};
                 && value > min && value < max
             );
         },
-        insertBrAtSelection:        function (win) {
+        insertBrAtSelection (win) {
             var doc;
             var sel = win.getSelection();
             var range = sel.getRangeAt(0);
@@ -939,7 +939,7 @@ const aa = {};
                 // return;
             }
         },
-        insertNodeAtSelection:      function (win, insertNode) { //, editableNode=null
+        insertNodeAtSelection (win, insertNode) { //, editableNode=null
             if (!self.document) throw new Error("document not defined.");
 
             var doc;
@@ -1060,10 +1060,10 @@ const aa = {};
                 sel.addRange(range);
             }
         },
-        isArray:                    function (param){
+        isArray (param){
             return Array.isArray(param);
         },
-        isArrayLike:                function (list) {
+        isArrayLike (list) {
             return (
                 Array.isArray(list) || 
                 typeof list === "string" || 
@@ -1081,7 +1081,7 @@ const aa = {};
                 )
             );
         },
-        isArrayLikeOf:              function (verifierFunction) {
+        isArrayLikeOf (verifierFunction) {
             aa.arg.test(verifierFunction, aa.isFunction, "'verifierFunction'");
 
             return addReadonlyProperties(
@@ -1093,7 +1093,7 @@ const aa = {};
                 },
             );
         },
-        isArrayOf:                  function (verifierFunction) {
+        isArrayOf (verifierFunction) {
             aa.arg.test(verifierFunction, aa.isFunction, "'verifierFunction'");
 
             return addReadonlyProperties(
@@ -1105,62 +1105,62 @@ const aa = {};
                 },
             );
         },
-        isArrayOfFunctions:         function (a){
+        isArrayOfFunctions (a){
 
             return (aa.isArray(a) && a.reduce((ok, v)=>{ return (!aa.isFunction(v) ? false : ok); }, true));
         },
-        isArrayOfNonEmptyStrings:   function (list) {
+        isArrayOfNonEmptyStrings (list) {
             return aa.isArray(list) && list.every(aa.nonEmptyString);
         },
-        isArrayOfNumbers:           function (a){
+        isArrayOfNumbers (a){
 
             return (aa.isArray(a) && a.every(v => aa.isNumber(v)));
         },
-        isArrayOfStrings:           function (a){
+        isArrayOfStrings (a){
             
             return (aa.isArray(a) && a.reduce((ok, v)=>{ return (!aa.isString(v) ? false : ok); }, true));
         },
-        isBool:                     function (o){
+        isBool (o){
             return (o === true || o === false);
         },
-        isDom:                      function (o) {
+        isDom (o) {
             if (!self.window) throw new Error("window not defined.");
             if (typeof self.window['HTMLElement'] !== 'undefined') {
                return (!!o && o instanceof HTMLElement);
             }
             return (!!o && typeof o === 'object' && o.nodeType === 1 && !!o.nodeName);
         },
-        isElement:                  function (o){
+        isElement (o){
             return (
                 typeof HTMLElement === "object"
                 ? o instanceof HTMLElement
                 : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string"
             );
         },
-        isFile:                     function (file) {
+        isFile (file) {
             return (
                 File !== undefined
                 && file instanceof File
             );
         },
-        isFloat:                    function (n){
+        isFloat (n){
             return Number(n) === n && n % 1 !== 0;
         },
-        isFunction:                 function (p){
+        isFunction (p){
             return (typeof p === 'function');
         },
-        isInt:                      function (p){
+        isInt (p){
             return Number.isInteger(p);
             // return typeof(p) === 'number' && p === parseInt(p);
         },
-        isNode:                     function (o){
+        isNode (o){
             return (
                 typeof Node === "object"
                 ? o instanceof Node
                 : o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
             );
         },
-        isNullOr:                   function (func) {
+        isNullOr (func) {
             aa.arg.test(func, aa.isFunction, "'func'");
             return function (param) {
                 if (param === null)
@@ -1173,20 +1173,20 @@ const aa = {};
         },
         isNullOrNonEmptyString:     v => (v === null || aa.nonEmptyString(v)),
         isNullOrInt:                v => (v === null || Number.isInteger(v)),
-        isNumber:                   function (param){
+        isNumber (param){
             return (
                 typeof param === "number"
                 && !Number.isNaN(param)
             );
         },
-        isNumeric:                  function (param){
+        isNumeric (param){
 
             return !isNaN(parseFloat(param)) && isFinite(param);
         },
-        isObject:                   function (param){
+        isObject (param){
             return (typeof param === 'object' && param !== null && !Array.isArray(param));
         },
-        isObjectOf:                 function (verifierFunction) {
+        isObjectOf (verifierFunction) {
             return addReadonlyProperties(
                 function (collection) {
                     return aa.isObject(collection) && collection.every(verifierFunction);
@@ -1196,19 +1196,19 @@ const aa = {};
                 },
             );
         },
-        isObjectOfFunctions:        function (o){
+        isObjectOfFunctions (o){
             return (
                 aa.isObject(o)
                 && o.reduce((ok, v)=>{ return (!aa.isFunction(v) ? false : ok); }, true)
             );
         },
-        isObjectOfStrings:          function (o){
+        isObjectOfStrings (o){
             return (
                 aa.isObject(o)
                 && o.reduce((ok, v) => (!aa.isString(v) ? false : ok), true)
             );
         },
-        isObjectOfObjects:          function (param) {
+        isObjectOfObjects (param) {
             let ok = true;
             if (aa.isObject(param)) {
                 ok = param.reduce((acc,data,key)=>{
@@ -1224,18 +1224,18 @@ const aa = {};
         isPositiveNumber:           v => (aa.isNumber(v) && v >= 0),
         isStrictlyPositiveInt:      v => (aa.isInt(v) && v > 0),
         isStrictlyPositiveNumber:   v => (aa.isNumber(v) && v > 0),
-        isRegExp:                   function (param){
+        isRegExp (param){
             return (
                 typeof param === "object"
                 && param.__proto__.constructor.name === "RegExp"
             );
         },
-        isString:                   function (value) {
+        isString (value) {
             return (
                 typeof(value) === 'string'
             );
         },
-        isStringMatch:              function (pattern) {
+        isStringMatch (pattern) {
             return addReadonlyProperties(
                 function (str) {
                     return aa.isString(str) && !!str.match(pattern);
@@ -1245,16 +1245,16 @@ const aa = {};
                 },
             );
         },
-        nonEmptyString:             function (str) {
+        nonEmptyString (str) {
             return (
                 aa.isString(str)
                 && str.trim().length > 0
             );
         },
-        now:                        function () {
+        now () {
             return (window?.performance ?? Date)?.now();
         },
-        purgeEventHandlers:         function (node) {
+        purgeEventHandlers (node) {
             aa.walkTheDOM(node, function (elt) {
                 for (let key in elt) {
                     if (typeof elt[key] === "function") {
@@ -1336,11 +1336,11 @@ const aa = {};
                 return result;
             };
         })(),
-        removeDOM:                  function (elt){
+        removeDOM (elt){
 
             elt.parentNode.removeChild(elt);
         },
-        repeat:                     function (times, callback /*, thisArg */) {
+        repeat (times, callback /*, thisArg */) {
             /**
              * Repeat an execution a given number of times.
              * 
@@ -1379,7 +1379,7 @@ const aa = {};
             }
             return Object.freeze(result);
         },
-        replace:                    function (car1,car2,param){
+        replace (car1,car2,param){
 
             var car1;
             var car2;
@@ -1387,13 +1387,13 @@ const aa = {};
             
             return param.split(car1).join(car2);
         },
-        resizeTextarea:             function (textarea) {
+        resizeTextarea (textarea) {
             aa.arg.test(textarea, arg => aa.isElement(arg) && arg?.tagName?.toLowerCase?.() === 'textarea', "'textarea'");
 
             textarea.style.height = '0px';
             textarea.style.height = `${textarea.scrollHeight}px`;
         },
-        setCookie:                  function (sName, sValue){
+        setCookie (sName, sValue){
             if (!self.document) throw new Error("document not defined.");
 
             var today = new Date();
@@ -1404,7 +1404,7 @@ const aa = {};
             document.cookie = sName + "=" + encodeURIComponent(sValue) + ";expires=" + expires.toGMTString(); //  + "; path=/"
             //test('set.'+sName,sValue);
         },
-        setHTML:                    function (identifiant,html) {
+        setHTML (identifiant,html) {
             var html;
             var identifiant;
 
@@ -1412,7 +1412,7 @@ const aa = {};
                 el(identifiant).innerHTML = html;
             }
         },
-        sortNatural:                function (a, b) {
+        sortNatural (a, b) {
             if (a === b) {
                 return 0;
             } else {
@@ -1491,7 +1491,7 @@ const aa = {};
                 return undefined;
             }
         },
-        testStorage:                function (type) {
+        testStorage (type) {
             if (!self.window) throw new Error("window not defined.");
             if (type !== "local" && type !== "session") {
                 throw new Error("Invalid parameter.");
@@ -1507,7 +1507,7 @@ const aa = {};
                 return false;
             }
         },
-        todo:                       function (param) {
+        todo (param) {
             if (aa.isString(param)) {
                 var tab     = 32,
                     method  = '';
@@ -1517,7 +1517,7 @@ const aa = {};
                 log('todo:'+(method).padStart(tab)+' - '+param);
             }
         },
-        toFloat:                    function (parametre) {
+        toFloat (parametre) {
 
             // var i;
             // var decimales = 6;
@@ -1535,16 +1535,16 @@ const aa = {};
             parametre = parseFloat(parametre);
             return parametre;
         },
-        unsetCookie:                function (sName){
+        unsetCookie (sName){
 
             createCookie(sName,"",-1);
         },
-        utf8_to_b64:                function (param){
+        utf8_to_b64 (param){
             // return param;
             if (!self.window) throw new Error("window not defined.");
             return self.window.btoa(unescape(encodeURIComponent(param)));
         },
-        verifyInterface:            function (spec={}) {
+        verifyInterface (spec={}) {
             aa.arg.test(spec, aa.verifyObject({
                 attributes: aa.isObjectOfFunctions,
                 methods: aa.isArrayOfNonEmptyStrings,
@@ -1620,7 +1620,7 @@ const aa = {};
          * 
          * @return {function}
          */
-        verifyObject:               function (model /*, strict=false */) {
+        verifyObject (model /*, strict=false */) {
             aa.arg.test(model, aa.isObject, `'model'`);
             const strict = aa.arg.optional(arguments, 1, false, aa.isBool);
             const options = aa.arg.optional(arguments, 1, {}, arg =>
@@ -1641,7 +1641,7 @@ const aa = {};
                 },
             );
         },
-        walkTheDOM:                 function (node,func){
+        walkTheDOM (node,func){
             /**
              *  Author: Douglas Crockford
              */
@@ -1652,7 +1652,7 @@ const aa = {};
                 node = node.nextSibling;
             }
         },
-        walkChildrenElements:       function (node, func) {
+        walkChildrenElements (node, func) {
             var o = {};
             var except = [];
             if (arguments && arguments.length > 2) {
@@ -1684,7 +1684,7 @@ const aa = {};
                 node = node.nextSibling;
             }
         },
-        writer:                    function ({namespace="", style="", indent=0}) {
+        writer ({namespace="", style="", indent=0}) {
             if (typeof namespace !== "string") throw new TypeError("The 'namespace' property must be a String.");
             if (typeof style !== "string") throw new TypeError("The 'style' property must be a String.");
             if (typeof indent !== "number" || Math.floor(indent) !== indent) throw new TypeError("The 'indent' property must be a positive Integer.");
@@ -1721,7 +1721,7 @@ const aa = {};
         },
     }, {force: true});
     aa.deploy(aa, {
-        defineAccessors:            function (accessors /*, spec */) {
+        defineAccessors (accessors /*, spec */) {
             aa.arg.test(accessors, aa.verifyObject({
                 execute:    aa.isObject,
                 privates:   aa.isObject,
@@ -1793,7 +1793,7 @@ const aa = {};
                 });
             });
         },
-        definePrivateMethods:       function (methods, spec={}) {
+        definePrivateMethods (methods, spec={}) {
             aa.arg.test(methods, aa.isObjectOfFunctions, "'methods'");
             aa.arg.test(spec, aa.verifyObject({
                 cut: aa.isFunction,
@@ -1814,7 +1814,7 @@ const aa = {};
                 spec.set(this, name, callback.bind(this));
             });
         },
-        getAccessor:                function (spec={}) {
+        getAccessor (spec={}) {
             aa.arg.test(spec, aa.verifyObject({
                 cut: aa.isFunction,
                 get: aa.isFunction,
@@ -1836,7 +1836,7 @@ const aa = {};
             });
             return Object.freeze(that);
         },
-        getFilesFromDataTransfer:   function (dataTransfer) {
+        getFilesFromDataTransfer (dataTransfer) {
             const files = [];
             if (dataTransfer.items) {
                 Array.from(dataTransfer.items)
@@ -2816,15 +2816,15 @@ const aa = {};
                 return sha512;
             })()
         },
-        isInArray:                  function (list) {
+        isInArray (list) {
             aa.arg.test(list, aa.isArray, `'list'`);
 
             return function (item) {
                 return list.has(item);
             };
         },
-        // makeSetter:                 function (Instancer) {},
-        mapFactory:                 function () {
+        // makeSetter (Instancer) {},
+        mapFactory () {
             const map = new WeakMap();
             const id = aa.uid();
             const methods = {
@@ -2834,7 +2834,7 @@ const aa = {};
                  *
                  * @return {any}
                  */
-                get: function (that, key) {
+                get (that, key) {
                     aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
                     const data = map.get(that, "data");
@@ -2850,7 +2850,7 @@ const aa = {};
                  *
                  * @return {boolean}
                  */
-                has: function (that, key) {
+                has (that, key) {
                     aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
                     const data = map.get(that, "data");
@@ -2862,7 +2862,7 @@ const aa = {};
                  *
                  * @return {function}
                  */
-                getter: function (that) {
+                getter (that) {
                     /**
                      * @param {any} key;
                      *
@@ -2887,7 +2887,7 @@ const aa = {};
                  *
                  * @return {any}
                  */
-                cut: function (that, key) {
+                cut (that, key) {
                     aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
                     const data = map.get(that, "data");
@@ -2906,7 +2906,7 @@ const aa = {};
                  *
                  * @return {void}
                  */
-                set: function (that, key, value) {
+                set (that, key, value) {
                     aa.arg.test(key, aa.nonEmptyString, `'key'`);
 
                     let data = map.get(that, "data");
@@ -2920,7 +2920,7 @@ const aa = {};
                  *
                  * @return {function}
                  */
-                setter: function (that) {
+                setter (that) {
                     /**
                      * @param {string} key;
                      * @param {any} value;
@@ -2945,7 +2945,7 @@ const aa = {};
             });
             return Object.freeze(methods);
         },
-        throwErrorIf:               function (condition /*, message, ErrorClass */) {
+        throwErrorIf (condition /*, message, ErrorClass */) {
             aa.arg.test(condition, aa.isBool, `'condition'`);
             const message = aa.arg.optional(arguments, 1, undefined, aa.nonEmptyString);
             const ErrorClass = aa.arg.optional(arguments, 2, Error);
@@ -3119,7 +3119,7 @@ const aa = {};
                 return uid;
             };
         })(),
-        uuidv4:                     function () {
+        uuidv4 () {
             /**
              * Found at https://stackoverflow.com/a/8809472
              */
@@ -3137,7 +3137,7 @@ const aa = {};
         class: (() => {
             const {cut, get, set} = aa.mapFactory();
             return {
-                getEmitter:     function (accessors={}) {
+                getEmitter (accessors={}) {
                     aa.arg.test(accessors, aa.verifyObject({
                         cut: aa.isFunction,
                         get: aa.isFunction,
@@ -3159,7 +3159,7 @@ const aa = {};
                         });;
                     });
                 },
-                getListener:    function (accessors={}) {
+                getListener (accessors={}) {
                     aa.arg.test(accessors, aa.verifyObject({
                         cut: aa.isFunction,
                         get: aa.isFunction,
@@ -3181,7 +3181,7 @@ const aa = {};
                         getter(this, "listeners")[eventName].push(callback);
                     });
                 },
-                hydrate:        function (spec={}) {
+                hydrate (spec={}) {
                     aa.arg.test(spec, aa.isObject, "'spec'");
                     spec.forEach((value, key) => {
                         if (key in this) {
@@ -3194,7 +3194,7 @@ const aa = {};
         event: (() => {
             const id = aa.uid();
             return {
-                getEmitter:     function (accessor, key=null, spec={} /*, key, spec */) {
+                getEmitter (accessor, key=null, spec={} /*, key, spec */) {
                     /**
                      *  Usage:
                      *      const emit = getEmitter(get, "listeners");
@@ -3253,7 +3253,7 @@ const aa = {};
                         }
                     };
                 },
-                getListener:    function (accessor /*, key, spec */) {
+                getListener (accessor /*, key, spec */) {
                     /**
                      * Usage:
                      *      MyClass.prototype.on = getListener(get, "listeners");
@@ -3332,7 +3332,7 @@ const aa = {};
                 }
             };
         })(),
-        debounce:   function (callback, delay=20) {
+        debounce (callback, delay=20) {
             /**
              * @param {Function} callback
              * @param {Integer} delay=20
@@ -3353,7 +3353,7 @@ const aa = {};
                 }, delay);
             });
         },
-        throttle:   function (callback, spec={}) {
+        throttle (callback, spec={}) {
             /**
              * @param {Function} callback
              * @param {Object|Int} spec={delay: 20, end: true, start: true} (optional) If Integer is given: assign value to spec.delay
@@ -3395,7 +3395,7 @@ const aa = {};
                 }
             };
         },
-        wait:       function (delay, callback) {
+        wait (delay, callback) {
             aa.arg.test(delay, aa.isStrictlyPositiveInt, `'delay'`);
             aa.arg.test(callback, aa.isFunction, `'callback'`);
 
@@ -3405,17 +3405,17 @@ const aa = {};
 
     // NUMBER functions:
     aa.deploy(Number, {
-        isInteger:      function(p) {
+        isInteger(p) {
             return (
                 typeof p === 'number'
                 && isFinite(p)
                 && Math.floor(p) === p
             );
         },
-        randomRange:    function (min, max) {
+        randomRange (min, max) {
             return Math.floor(Math.random() * (1+max - min) + min);
         },
-        toOrdinal:      function (num) {
+        toOrdinal (num) {
             aa.arg.test(num, aa.isNumber);
             num += '';
             const lastChar = parseInt(num[num.length-1]);
@@ -3428,7 +3428,7 @@ const aa = {};
         }
     });
     aa.deploy(Date.prototype, {
-        toInputString:  function () {
+        toInputString () {
             return `${this.getFullYear()}-${(this.getMonth()+1+'').padStart(2, '0')}-${(this.getDate()+'').padStart(2, '0')}`;
         },
     });
@@ -3441,7 +3441,7 @@ const aa = {};
          * 
          * @return {number}
          */
-        bound:          function (min, max=null) {
+        bound (min, max=null) {
             aa.arg.test(min, aa.isNullOr(aa.isNumber), "'min'");
             aa.arg.test(max, aa.isNullOr(aa.isNumber), "'max'");
 
@@ -3451,7 +3451,7 @@ const aa = {};
         /**
          * Return th number if it is within the given Integer boundaries; else return the minimum (included) or maximum (excluded).
          */
-        clamp:          function (min, max, options={}) {
+        clamp (min, max, options={}) {
             aa.arg.test(min, aa.isInt, "'min'");
             aa.arg.test(max, aa.isInt, "'max'");
             aa.arg.test(options, aa.verifyObject({
@@ -3471,14 +3471,14 @@ const aa = {};
             }
             return min === max ? min : value < min ? min : value > max - 1 ? max - 1 : value;
         },
-        normalize:      function (origRange, destRange) {
+        normalize (origRange, destRange) {
             const value = this+0;
             const min = origRange[0];
             const max = origRange[1];
             const variation = (destRange[1] - destRange[0]) / (max - min);
             return (destRange[0] + ((value - min) * variation));
         },
-        between:        function (min, max, strict=false) {
+        between (min, max, strict=false) {
             /**
              * @param {Number} min
              * @param {Number} max
@@ -3491,10 +3491,10 @@ const aa = {};
                 : (this >= min && this <= max)
             );
         },
-        pow:            function (param){
+        pow (param){
             return Math.pow(this,param);
         },
-        sign:           function (){
+        sign (){
             /**
              * return +1 or -1
              */
@@ -3504,7 +3504,7 @@ const aa = {};
 
     // STRING functions:
     aa.deploy(String.prototype, {
-        aaReplace:              function (regex,value) {
+        aaReplace (regex,value) {
             if (aa.isObject(regex) && regex.constructor && regex.constructor.name === 'RegExp') {
                 var res = this.match(regex);
                 if (res) {
@@ -3513,15 +3513,15 @@ const aa = {};
             }
             return this.toString();
         },
-        base64Encode:           function (){
+        base64Encode (){
             if (!self.window) throw new Error("window not defined.");
             return self.window.btoa(unescape(encodeURIComponent(this.valueOf())));
         },
-        base64Decode:           function (){
+        base64Decode (){
             if (!self.window) throw new Error("window not defined.");
             return decodeURIComponent(escape(self.window.atob(this.valueOf())));
         },
-        compare:                function (str) {
+        compare (str) {
             if (!aa.isString(str)) { throw new TypeError("Argument must be a String."); }
 
             const that = this.toString()+'';
@@ -3548,26 +3548,26 @@ const aa = {};
             }
             return o;
         },
-        relativeFromAbsolute:   function (){
+        relativeFromAbsolute (){
             let that = this+'';
             return that;
         },
-        firstToLower:           function (){
+        firstToLower (){
         
             return this.charAt(0).toLowerCase() + this.slice(1);
         },
-        firstToUpper:           function (){
+        firstToUpper (){
         
             return this.charAt(0).toUpperCase() + this.slice(1);
         },
-        getBasename:            function () {
+        getBasename () {
             const parts = this.getFilename().split('.');
             if (parts.length > 1) {
                 parts.pop();
             }
             return parts.join('.');
         },
-        getDirname:             function () {
+        getDirname () {
             const str = new String(this).replace(/\/+$/, '');
             const parts = str.split('/');
             if (parts.length > 1) {
@@ -3575,7 +3575,7 @@ const aa = {};
             }
             return parts.join('/');
         },
-        getFilename:            function () {
+        getFilename () {
             const str = this.toString();
             const parts = str.split('/');
             if (parts && parts.length) {
@@ -3583,14 +3583,14 @@ const aa = {};
             }
             return str;
         },
-        getExtension:           function () {
+        getExtension () {
             const parts = this.toString().split('.');
             if (parts && parts.length >= 2) {
                 return parts[parts.length-1];
             }
             return null;
         },
-        htmlEncode:             function () {
+        htmlEncode () {
             return this.replace(/[\u00A0-\u9999<>\&]/gim, function (i) {
                return "&#"+i.charCodeAt(0)+';';
             });
@@ -3607,13 +3607,13 @@ const aa = {};
             }
             return aRet.join('');    
         },
-        encodeForDOM:           function () {
+        encodeForDOM () {
             return this
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             ;
         },
-        isEqual:                function (str) {
+        isEqual (str) {
             if (!aa.isString(str)) { throw new TypeError("Argument must be a String."); }
 
             if (str.length !== this.length) {
@@ -3625,7 +3625,7 @@ const aa = {};
             });
             return (dismatch === undefined);
         },
-        minimize:               function (max) {
+        minimize (max) {
             /**
              * @param {int} max
              *
@@ -3649,7 +3649,7 @@ const aa = {};
             }
             return basename+(ext ? '.'+ext : '');
         },
-        noAccent:               function (){
+        noAccent (){
             var str = this.toString();
             ({
                 A: "ÀÁÂÃÄÅĀ",
@@ -3675,7 +3675,7 @@ const aa = {};
             });
             return str;
         },
-        padEnd:                 function (pad) {
+        padEnd (pad) {
             var that = this.toString();
             var str = ' ';
             
@@ -3698,7 +3698,7 @@ const aa = {};
             }
             return that.substr(0,pad);
         },
-        padStart:               function (pad) {
+        padStart (pad) {
             var that = this.toString();
             var str = ' ';
             
@@ -3721,7 +3721,7 @@ const aa = {};
             }
             return that.substr(0,pad);
         },
-        reverse:                function () {
+        reverse () {
             let str = '';
             if (this.length > 0) {
                 for (let i=this.length-1; i>-1; i--) {
@@ -3734,7 +3734,7 @@ const aa = {};
          * Explode it into an Array. Every character other than [a-zA-Z0-9] characters are rejected.
          * @return {String[]}
          */
-        splitFromCasing:      function () {
+        splitFromCasing () {
             let currentWord = '';
             const words = [];
             this.forEach(char => {
@@ -3758,7 +3758,7 @@ const aa = {};
          * 
          * @return {String}
          */
-        toCamelCase:            function () {
+        toCamelCase () {
             return (
                 this.splitFromCasing()
                 .map(word => word.toLowerCase().firstToUpper())
@@ -3774,7 +3774,7 @@ const aa = {};
          * 
          * @return {String}
          */
-        toKebabCase:            function (options={}) {
+        toKebabCase (options={}) {
             aa.arg.test(options, aa.verifyObject({
                 upper: aa.isBool,
             }), "'options'");
@@ -3793,7 +3793,7 @@ const aa = {};
          * 
          * @return {String}
          */
-        toPascalCase:           function () {
+        toPascalCase () {
             return (
                 this.splitFromCasing()
                 .map(word => word.toLowerCase().firstToUpper())
@@ -3808,7 +3808,7 @@ const aa = {};
          * 
          * @return {String}
          */
-        toSnakeCase:            function (options={}) {
+        toSnakeCase (options={}) {
             aa.arg.test(options, aa.verifyObject({
                 upper: aa.isBool,
             }), "'options'");
@@ -3823,7 +3823,7 @@ const aa = {};
             );
         },
         // ----------------------------------------------------------------
-        filter: function (callback /*, thisArg */) {
+        filter (callback /*, thisArg */) {
             if (!aa.isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
             const thisArg = (arguments && arguments.length > 1 ? arguments[1] : this);
             let i;
@@ -3836,7 +3836,7 @@ const aa = {};
             }
             return str;
         },
-        find:   function (callback /*, thisArg */) {
+        find (callback /*, thisArg */) {
             if (!aa.isFunction(callback)) { throw new TypeError("First argument must be a Function."); }
             const thisArg = (arguments && arguments.length > 1 ? arguments[1] : this);
             let i;
@@ -3849,7 +3849,7 @@ const aa = {};
             }
             return undefined;
         },
-        reduce: function (callback /*, initialValue*/) {
+        reduce (callback /*, initialValue*/) {
             let i,
                 acc = '',
                 str = Object(this);
@@ -3868,14 +3868,14 @@ const aa = {};
     // ARRAY functions:
     if (Array.prototype.first                   === undefined) { 
         Object.defineProperty(Array.prototype,'first',{
-            get: function () {
+            get () {
                 return this.length > 0 ? this[0] : undefined;
             }
         });
     }
     if (Array.prototype.last                    === undefined) { 
         Object.defineProperty(Array.prototype, "last", {
-            get: function () {
+            get () {
                 return this.length > 0 ? this[this.length - 1] : undefined;
             }
         });
@@ -3884,7 +3884,7 @@ const aa = {};
         Array.aa = {};
     }
     aa.deploy(Array.aa, {
-        indexOf:        function (param){
+        indexOf (param){
             
             // Warning: returns false if given parameter is an object with indexes in a different order!
             
@@ -3896,14 +3896,14 @@ const aa = {};
         }
     });
     aa.deploy(Array.prototype, {
-        clear:              function () {
+        clear () {
             // const that = Object(this);
             // that.splice(0, that.length);
             while (this.length) {
                 this.pop();
             }
         },
-        has:                function (item, stringified=false) {
+        has (item, stringified=false) {
             if (typeof stringified !== "boolean") throw new TypeError("The second argument must be a Boolean.");
             if (stringified) {
                 // Warning: returns false if given parameter is an object with indexes in a different order!
@@ -3916,19 +3916,19 @@ const aa = {};
             }
             return this.indexOf(item) > -1;
         },
-        hasKey:             function (param) {
+        hasKey (param) {
             return (this[param] !== undefined);
         },
-        hasKeyString:       function (param){
+        hasKeyString (param){
             return (typeof this[param] !== 'undefined' && aa.isString(this[param]));
         },
-        hasKeyInt:          function (param){
+        hasKeyInt (param){
             return (typeof this[param] !== 'undefined' && aa.isInt(this[param]));
         },
-        hasKeyArray:        function (param){
+        hasKeyArray (param){
             return (typeof this[param] !== 'undefined' && aa.isArray(this[param]));
         },
-        hasKeyObject:       function (param){
+        hasKeyObject (param){
             return (typeof this[param] !== 'undefined' && aa.isObject(this[param]));
         },
         /**
@@ -3950,7 +3950,7 @@ const aa = {};
          * 
          * @return {string}
          */
-        joinNatural:        function (options={}) {
+        joinNatural (options={}) {
             aa.arg.test(options, aa.verifyObject({
                 default:    aa.isString,
                 last:       aa.isString,
@@ -3983,7 +3983,7 @@ const aa = {};
                 .join(options.default)
             );
         },
-        pushUnique:         function (...items) {
+        pushUnique (...items) {
             for (let i = 0, item; i < items.length; i++) {
                 item = items[i];
                 if (this.indexOf(item) < 0) {
@@ -3992,13 +3992,13 @@ const aa = {};
             }
             return this.length;
         },
-        removeElement:      function (element) {
+        removeElement (element) {
             var i = this.indexOf(element);
             if (i > -1) {
                 this.splice(i, 1);
             }
         },
-        sortFloat:          function () {
+        sortFloat () {
             
             var i;
             var j;
@@ -4047,11 +4047,11 @@ const aa = {};
                 this[i] = parseFloat((parseInt(this[i]))/multiplicateur);
             }
         },
-        sortNatural:        function (){
+        sortNatural (){
             this.sort(aa.sortNatural);
             return this;
         },
-        remove:             function (item /*, removeAll=false */) {
+        remove (item /*, removeAll=false */) {
             /**
              * Removes first or all item(s) matching the argument from the Array. Returns the first found item or undefined.
              *
@@ -4085,7 +4085,7 @@ const aa = {};
 
             return undefined;
         },
-        removeDuplicates:   function () {
+        removeDuplicates () {
             const arr = [];
             const that = Object(this);
             const len = that.length ?? 0;
@@ -4098,7 +4098,7 @@ const aa = {};
             }
             return arr;
         },
-        verify:             function (callback){
+        verify (callback){
             if (!aa.isFunction(callback)) { throw new TypeError("Argument must be a Function."); }
 
             return (this.filter(item => {
@@ -4111,7 +4111,7 @@ const aa = {};
     }, {force: true});
     aa.deploy(Array.prototype, {
         // from MDN:
-        every:              function (callback /*, thisArg */) {
+        every (callback /*, thisArg */) {
             if (this == null) { throw new TypeError("this vaut null ou n est pas défini"); }
             if (typeof callback !== "function") { throw new TypeError("First argument must be a Function."); }
 
@@ -4129,7 +4129,7 @@ const aa = {};
 
             return true;
         },
-        filter:             function (callback /*, thisArg */) {
+        filter (callback /*, thisArg */) {
             if (this === void 0 || this === null) throw new TypeError('Array.prototype.filter called on null or undefined');
             if (typeof callback !== "function") throw new TypeError('callback must be a function');
 
@@ -4153,7 +4153,7 @@ const aa = {};
             }
             return result;
         },
-        find:               function (callback /*, thisArg */) {
+        find (callback /*, thisArg */) {
             if (this == null) throw new TypeError('Array.prototype.find called on null or undefined');
             if (typeof callback !== "function") throw new TypeError('callback must be a function');
 
@@ -4170,10 +4170,10 @@ const aa = {};
             }
             return undefined;
         },
-        findLastIndex:      function (callback /*, thisArg */) {
+        findLastIndex (callback /*, thisArg */) {
             return this.findLastIndex.apply(this, arguments) ?? -1;
         },
-        findReverse:        function (callback /*, thisArg */) {
+        findReverse (callback /*, thisArg */) {
             if (this == null)                   throw new TypeError('Array.prototype.find called on null or undefined');
             if (typeof callback !== "function") throw new TypeError('callback must be a function');
 
@@ -4192,7 +4192,7 @@ const aa = {};
         },
         // ECMA-262, Edition 5, 15.4.4.18
         // Référence: http://es5.github.io/#x15.4.4.18
-        forEach:            function (callback /*, thisArg */) {
+        forEach (callback /*, thisArg */) {
             if (this === null) { throw new TypeError("Array.prototype.forEach called on null or undefined"); }
             if (typeof callback !== "function") { throw new TypeError("The first argument must be a Function."); }
 
@@ -4219,7 +4219,7 @@ const aa = {};
          * 
          * @return <void>
          */
-        forEachAsync:       function (callback /*, resolve=null, options={} */) {
+        forEachAsync (callback /*, resolve=null, options={} */) {
             const args = [...arguments].slice(1);
             const resolve = args.find(aa.isFunction) ?? null;
             const options = args.find(aa.isObject) ?? {};
@@ -4265,7 +4265,7 @@ const aa = {};
                 if (this.length > 0) iteration();
             }
         },
-        loopThrough:        function (callback /*, spec */) {
+        loopThrough (callback /*, spec */) {
             /**
              * Loop through every item of an array.
              * 
@@ -4305,7 +4305,7 @@ const aa = {};
             return undefined;
         },
         // based on Array.forEach
-        forEachReverse:     function (callback /*, thisArg */) {
+        forEachReverse (callback /*, thisArg */) {
             if (this === null) { throw new TypeError("Array.forEach called on null or undefined"); }
             if (typeof callback !== "function") { throw new TypeError("First argument must be a Function."); }
 
@@ -4323,7 +4323,7 @@ const aa = {};
         },
         // Production steps / ECMA-262, Edition 5, 15.4.4.19
         // Référence : http://es5.github.io/#x15.4.4.19
-        map:                function (callback /*, thisArg */) {
+        map (callback /*, thisArg */) {
             if (this == null) throw new TypeError('Array.map called on null or undefined');
             if (typeof callback !== "function") { throw new TypeError("The first argument must be a Function."); }
 
@@ -4344,7 +4344,7 @@ const aa = {};
         },
         // Production steps, ECMA-262, Edition 5, 15.4.4.21
         // Référence : http://es5.github.io/#x15.4.4.21
-        reduce:             function (callback, accumulator, thisArg) {
+        reduce (callback, accumulator, thisArg) {
             if (this === null || this === undefined) {  throw new TypeError('Array.reduce called on null or undefined'); }
             if (typeof callback !== "function") {       throw new TypeError('Callback argument must be a Function'); }
             
@@ -4362,7 +4362,7 @@ const aa = {};
         },
         // Production steps, ECMA-262, Edition 5, 15.4.4.21
         // Référence : http://es5.github.io/#x15.4.4.21
-        reduceReverse:      function (callback, accumulator, thisArg) {
+        reduceReverse (callback, accumulator, thisArg) {
             if (this === null || this === undefined) {  throw new TypeError('Array.reduceReverse called on null or undefined'); }
             if (typeof callback !== "function") {       throw new TypeError('Callback argument must be a Function'); }
             
@@ -4380,7 +4380,7 @@ const aa = {};
         },
         // Production ECMA-262, Edition 5, 15.4.4.17
         // Référence : http://es5.github.io/#x15.4.4.17
-        some:               function (callback, thisArg) {
+        some (callback, thisArg) {
             if (this == null) { throw new TypeError("Array.prototype.some called on null ou undefined"); }
             if (typeof callback !== "function") { throw new TypeError("First argument must be a Function."); }
 
@@ -4398,7 +4398,7 @@ const aa = {};
         },
         // Production steps of ECMA-262, Edition 5, 15.4.4.22
         // Reference: http://es5.github.io/#x15.4.4.22
-        reduceRight:        function (callback /*, initialValue */) {
+        reduceRight (callback /*, initialValue */) {
             if (null === this || typeof this === "undefined") { throw new TypeError("Array.reduce called on null or undefined"); }
             if (typeof callback !== "function") { throw new TypeError(callback + " is not a function"); }
 
@@ -4457,7 +4457,7 @@ const aa = {};
                 return obj;
             };
         })(),
-        getAbsolutePositionOf:  function (element) {
+        getAbsolutePositionOf (element) {
             aa.arg.test(element, aa.isElement, "'element'");
 
             let left = 0,
@@ -4471,7 +4471,7 @@ const aa = {};
 
             return {left, top};
         },
-        getFixedPositionOf:     function (element) {
+        getFixedPositionOf (element) {
             aa.arg.test(element, aa.isElement, "'element'");
 
             const absolute = Object.getAbsolutePositionOf(element);
@@ -4482,7 +4482,7 @@ const aa = {};
                 top:    absolute.top - scroll.top
             };
         },
-        getScrollPositionOf:    function (element) {
+        getScrollPositionOf (element) {
             aa.arg.test(element, aa.isElement, "'element'");
 
             let left = 0,
@@ -4500,7 +4500,7 @@ const aa = {};
     aa.deploy(Object.prototype, {
         // ----------------------------------------------------------------
         // Object functions:
-        bind:               function (thisArg) {
+        bind (thisArg) {
             const o = {};
             this.forEach((value, key) => {
                 o[key] = ((aa.isFunction(value) || aa.isObject(value)) ?
@@ -4510,7 +4510,7 @@ const aa = {};
             });
             return o;
         },
-        cancel:             function (eventName, callback, bubble=false) {
+        cancel (eventName, callback, bubble=false) {
             if (aa.isObject(eventName)) {
                 const events = eventName;
                 aa.arg.test(events, aa.isObjectOfFunctions, "'events'");
@@ -4535,7 +4535,7 @@ const aa = {};
             }
             return this;
         },
-        clone:              function () {
+        clone () {
             let o;
             if (
                 this === null
@@ -4557,7 +4557,7 @@ const aa = {};
             }
             return o;
         },
-        every:              function (callback /*, thisArg */) {
+        every (callback /*, thisArg */) {
             const thisArg = arguments && arguments.length > 1 ? arguments[1] : undefined;
 
             let i;
@@ -4574,7 +4574,7 @@ const aa = {};
             }
             return true;
         },
-        filter:             function (callback /* , thisArg */) {
+        filter (callback /* , thisArg */) {
             const thisArg = arguments && arguments.length > 1 ? arguments[1] : undefined;
 
             let i;
@@ -4592,7 +4592,7 @@ const aa = {};
             }
             return o;
         },
-        find:               function (func /*, thisArg */) {
+        find (func /*, thisArg */) {
             "use strict";
             if (this == null) {
                 throw new TypeError("Array.prototype.find called on null or undefined");
@@ -4618,7 +4618,7 @@ const aa = {};
             }
             return undefined;
         },
-        findLast:           function (callback /*, thisArg */) {
+        findLast (callback /*, thisArg */) {
             /**
              * @param Function callback
              * @param Function thisAarg (optional)
@@ -4650,7 +4650,7 @@ const aa = {};
                 // Do stuff...
             });
         */
-        forEach:            function (callback /*, thisArg */) {
+        forEach (callback /*, thisArg */) {
             var i, k, thisArg, value, keys;
             if (this === void 0 || this === null) { throw new TypeError("Array.forEach called on null or undefined"); }
             if (typeof callback !== "function") { throw new TypeError("First argument must be a Function."); }
@@ -4676,7 +4676,7 @@ const aa = {};
                 // Do stuff...
             });
         */
-        forEachReverse:     function (callback /*, thisArg */) {
+        forEachReverse (callback /*, thisArg */) {
             let i, k, thisArg, value, keys;
             if (this === void 0 || this === null) {
                 throw new TypeError("Array.forEach called on null or undefined");
@@ -4702,25 +4702,25 @@ const aa = {};
                 }
             }
         },
-        hasKey:             function (param) {
+        hasKey (param) {
             return this[param] !== undefined;
         },
-        hasKeyString:       function (param){
+        hasKeyString (param){
 
             return (this[param] !== undefined && aa.isString(this[param]));
         },
-        hasKeyInt:          function (param){
+        hasKeyInt (param){
 
             return (this[param] !== undefined && aa.isInt(this[param]));
         },
-        hasKeyArray:        function (param){
+        hasKeyArray (param){
 
             return (this[param] !== undefined && aa.isArray(this[param]));
         },
-        hasKeyObject:       function (param){
+        hasKeyObject (param){
             return (this[param] !== undefined && aa.isObject(this[param]));
         },
-        indexOf:            function (p) {
+        indexOf (p) {
             
             // Warning: returns false if given parameter is an object with indexes in a different order!
             
@@ -4734,7 +4734,7 @@ const aa = {};
             }
             return null;
         },
-        indexesOf:          function (param) {
+        indexesOf (param) {
             
             // Warning: returns false if given parameter is an object with indexes in a different order!
             
@@ -4749,7 +4749,7 @@ const aa = {};
             }
             return ((result.length) ? result : null);
         },
-        is:                 function (v1, v2) {
+        is (v1, v2) {
             // Algorithme SameValue
             if (v1 === v2) { //Étapes 1-5, 7-10
                 //Étapes 6.b-6.b +0 !=-0
@@ -4759,11 +4759,11 @@ const aa = {};
                 return v1 !== v1 && v2 !== v2;
             }
         },
-        keys:               function () {
+        keys () {
             
             return Object.keys(this);
         },
-        map:                function (callback, context=undefined, ownPropertyNames=false) {
+        map (callback, context=undefined, ownPropertyNames=false) {
             /*
              * How to use:
                 obj.map(function (value, key[, item]) {
@@ -4787,7 +4787,7 @@ const aa = {};
             return o;
         },
         // See 'Object.cancel' to remove listeners
-        on:                 function (eventName, callback) {
+        on (eventName, callback) {
             /**
              * Usage:
              * Object
@@ -4825,7 +4825,7 @@ const aa = {};
             }
             return this;
         },
-        reduce:             function (callback) {
+        reduce (callback) {
             if (typeof callback !== "function") { throw new TypeError("First argument must be a Function."); }
 
             const that = this;
@@ -4840,7 +4840,7 @@ const aa = {};
             });
             return acc
         },
-        some:               function (callback /*, that */) {
+        some (callback /*, that */) {
             aa.arg.test(callback, aa.isFunction, `'callback'`);
             const that = aa.arg.optional(arguments, 1, undefined);
         
@@ -4859,7 +4859,7 @@ const aa = {};
             }
             return false;
         },
-        sprinkle:           function (seasoning /*, options */) {
+        sprinkle (seasoning /*, options */) {
             /**
              * Add some key/value pairs to an Object if keys are not defined,
              * or reset a value to a key if the original value's type dosen't match the given value's type.
@@ -4902,7 +4902,7 @@ const aa = {};
             });
             return this;
         },
-        toSortedArray:      function () {
+        toSortedArray () {
             /**
              * Return an array of two arrays. The first array contains the keys, sorted. The second array contains their coresponding values.
              * 
@@ -4928,7 +4928,7 @@ const aa = {};
          *
          * @return {boolean}
          */
-        verify:             function (model /*, strict */) {
+        verify (model /*, strict */) {
             const strict = aa.arg.optional(arguments, 1, false, aa.isBool);
             const options = aa.arg.optional(arguments, 1, {}, arg =>
                 aa.isObject(arg)
@@ -4964,14 +4964,15 @@ const aa = {};
             return err.length === 0;
         },
         // ----------------------------------------------------------------
-        clear:              function () {
+        clear () {
             aa.arg.test(this, aa.isNode, ": 'clear' method can not be called on an Object that is not a DOM Element.");
             
             while (this.firstChild) {
                 this.removeChild(this.firstChild);
             }
+            return this;
         },
-        diveByClass:        function (className,func) {
+        diveByClass (className,func) {
             /**
              */
             if (aa.isString(className) && className.trim()) {}
@@ -4985,7 +4986,7 @@ const aa = {};
                 }
             });
         },
-        diveTheDOM:         function (func) {
+        diveTheDOM (func) {
             /**
              *  Author: based on Douglas Crockford
              */
@@ -5001,7 +5002,7 @@ const aa = {};
                 // console.warn('The Object is not a DOM element.');
             }
         },
-        diveTheElements:    function (func) {
+        diveTheElements (func) {
             /**
              *  Author: based on Douglas Crockford
              */
@@ -5019,7 +5020,7 @@ const aa = {};
                 console.warn('This Object is not an HTML ELEMENT.');
             }
         },
-        getElementsBy:      function (callback /*, thisArg */) {
+        getElementsBy (callback /*, thisArg */) {
             /**
              * Dive into the DOM, inside the Element tree, and return an Array of every node that verify a callback filtering Function.
              * 
@@ -5045,7 +5046,7 @@ const aa = {};
             
             return nodes;
         },
-        getFormElements:    function (/* thisArg */) {
+        getFormElements (/* thisArg */) {
             /**
              * Dive into the DOM, inside the Element tree, and return an Array of every form node.
              * 
@@ -5070,7 +5071,7 @@ const aa = {};
             
             return nodes;
         },
-        insertAtFirst:      function (newNode) {
+        insertAtFirst (newNode) {
             /**
              * parentNode.insertAtFirst(newNode);
              */
@@ -5082,7 +5083,7 @@ const aa = {};
                 }
             }
         },
-        insertAfter:        function (newNode) {
+        insertAfter (newNode) {
             /**
              * thaa.isNode.insertAfter(newNode);
              */
@@ -5094,7 +5095,7 @@ const aa = {};
                 }
             }
         },
-        removeChildren:     function () {
+        removeChildren () {
             if (aa.isDom(this)) {
                 while(this.hasChildNodes()) {
                     this.removeChild(this.firstChild);
@@ -5103,7 +5104,7 @@ const aa = {};
             }
             return false;
         },
-        removeNode:         function () {
+        removeNode () {
             /**
              * thaa.isNode.removeNode();
              */
@@ -5112,11 +5113,11 @@ const aa = {};
                 delete o.reference;
             }
         },
-        replace:            function (node) {
+        replace (node) {
             this.parentNode.insertBefore(node, this);
             this.removeNode();
         },
-        riseTheDOM:         function (func) {
+        riseTheDOM (func) {
             var res;
             var that = Object(this);
             if (that && aa.isNode(that)) {
@@ -5142,7 +5143,7 @@ const aa = {};
                 }
             } else { console.warn("not an element."); }
         },
-        findRising:         function (callback, context=undefined) {
+        findRising (callback, context=undefined) {
             aa.arg.test(callback, aa.isFunction, "'callback'");
 
             let that = Object(this);
@@ -5163,10 +5164,10 @@ const aa = {};
             } else { console.warn("not an element node."); }
             return undefined;
         },
-        someRising:         function (callback, context=undefined) {
+        someRising (callback, context=undefined) {
             return (!!this.findRising(callback, context));
         },
-        ignoreKeys:         function (...keys) {
+        ignoreKeys (...keys) {
             /**
              * @param <string[]> keys
              */
@@ -5229,7 +5230,7 @@ const aa = {};
 
     // IMAGE functions:
     if (self.window?.Image) aa.deploy(self.window.Image.prototype, {
-        toBase64:   function (){
+        toBase64 (){
             this.setAttribute("crossOrigin", "anonymous");
             var base64 = this.toDataURL()
                 .replace(/^data:image\/(jpe?g|gif|png);base64,/, "")
@@ -5238,7 +5239,7 @@ const aa = {};
             // log({'Image.base64': base64});
             return base64;
         },
-        toDataURL:  function () {
+        toDataURL () {
             if (!self.document) throw new Error("document not defined.");
 
             let dataUrl;
@@ -5373,7 +5374,7 @@ const aa = {};
         })(),
     });
     if (self.window) aa.deploy(self.window, {
-        resizeImg: function (options) {
+        resizeImg (options) {
             /**
              * @param {Object} options
              * @param {Function} resolve (optional)
@@ -5475,7 +5476,7 @@ const aa = {};
 
     // FILE functions:
     aa.deploy(File.prototype, {
-        toBase64: function () {
+        toBase64 () {
             /**
              * @param {function} resolve: (img) {}
              * @param {function} reject: (err) {}
@@ -5507,7 +5508,7 @@ const aa = {};
                 }
             }
         },
-        toImage: function () {
+        toImage () {
             /**
              * @param {function} resolve: (img) {}
              * @param {function} reject: (err) {}
@@ -5566,7 +5567,7 @@ const aa = {};
     // ----------------------------------------------------------------
     // Prototypes methods:
     aa.prototypes = {
-        hydrate: function (o) {
+        hydrate (o) {
             /**
              * @param {object} o
              *
@@ -5655,7 +5656,7 @@ const aa = {};
         }
         aa.deploy(LinkedList.prototype, {
             // Loop methods:
-            every:      function (callback, thisArg) {
+            every (callback, thisArg) {
                 const that = Object(this);
                 let node = get(this, "head");
                 let i = 0;
@@ -5666,7 +5667,7 @@ const aa = {};
                 }
                 return true;
             },
-            filter:     function (callback, thisArg) {
+            filter (callback, thisArg) {
                 const that = Object(this);
                 const list = new LinkedList();
                 let node = get(this, "head");
@@ -5678,7 +5679,7 @@ const aa = {};
                 }
                 return list;
             },
-            find:       function (callback, thisArg) {
+            find (callback, thisArg) {
                 const that = Object(this);
                 let node = get(this, "head");
                 let i = 0;
@@ -5689,7 +5690,7 @@ const aa = {};
                 }
                 return undefined;
             },
-            findLast:   function (callback, thisArg) {
+            findLast (callback, thisArg) {
                 const that = Object(this);
                 let node = get(this, "trail");
                 let i = get(this, "size") - 1;
@@ -5700,7 +5701,7 @@ const aa = {};
                 }
                 return undefined;
             },
-            forEach:    function (callback, thisArg) {
+            forEach (callback, thisArg) {
                 const that = Object(this);
                 let node = get(this, "head");
                 let i = 0;
@@ -5710,7 +5711,7 @@ const aa = {};
                     i++;
                 }
             },
-            map:        function (callback, thisArg) {
+            map (callback, thisArg) {
                 const that = Object(this);
                 let node = get(this, "head");
                 let i = 0;
@@ -5720,7 +5721,7 @@ const aa = {};
                     i++;
                 }
             },
-            reduce:     function (callback, accumulator, thisArg) {
+            reduce (callback, accumulator, thisArg) {
                 const that = Object(this);
                 let node = get(this, "head");
                 let i = 0;
@@ -5731,7 +5732,7 @@ const aa = {};
                 }
                 return accumulator;
             },
-            some:       function (callback, thisArg) {
+            some (callback, thisArg) {
                 const that = Object(this);
                 let node = get(this, "head");
                 let i = 0;
@@ -5750,7 +5751,7 @@ const aa = {};
              * @param   any value2
              * @param   any ...
              */
-            add:        function (/* ...values */) {
+            add (/* ...values */) {
                 const len = arguments.length >>> 0;
                 let i = 0;
                 let size = get(this, "size");
@@ -5775,18 +5776,18 @@ const aa = {};
                     i++;
                 }
             },
-            clear:      function () {
+            clear () {
                 set(this, "head", null);
                 set(this, "trail", null);
                 set(this, "size", 0);
             },
-            reset:      function () {
+            reset () {
                 this.clear();
                 set(this, "authenticate", null);
             },
 
             // Getters:
-            toArray:    function () {
+            toArray () {
                 const result = [];
                 let node = get(this, "head");
                 while (node) {
@@ -5799,7 +5800,7 @@ const aa = {};
 
         // Statics:
         aa.deploy(LinkedList, {
-            from: function (arr) {
+            from (arr) {
                 if (!aa.isArrayLike(arr)) throw new TypeError("The argument must be an Array-like.");
                 const list = new LinkedList();
                 list.add(...arr);
@@ -5827,7 +5828,7 @@ const aa = {};
             });
         }
         aa.deploy(LinkedListNode.prototype, {
-            insert: function (value) {
+            insert (value) {
                 const node = new LinkedListNode(value);
 
                 const next      = get(this, "next");
@@ -5841,7 +5842,7 @@ const aa = {};
                 sizeIncrement.call(parent);
                 set(node, "next", this);
             },
-            remove: function () {
+            remove () {
                 const parent    = get(this, "parent");
                 const previous  = get(this, "previous");
                 const next      = get(this, "next");
@@ -5996,9 +5997,9 @@ const aa = {};
                 this.getters                = function () {
 
                     Object.defineProperty(this, "list", {
-                        get: function () { return Object.freeze(__private.collection); }
+                        get () { return Object.freeze(__private.collection); }
                     })
-                    // Object.defineProperty(this, "verified", {get: function () { return __self.verified; }})
+                    // Object.defineProperty(this, "verified", {get () { return __self.verified; }})
                 };
                 this.checkDependency        = function (version, expected) {
                     /**
@@ -6241,11 +6242,11 @@ const aa = {};
         const instance = {
             
             // Public methods:
-            onbodyload: function () {
+            onbodyload () {
 
                 aaVersions.onbodyload();
             },
-            test: function (spec /*, resolve, reject */) {
+            test (spec /*, resolve, reject */) {
                 if (!aa.isObject(spec)) { throw new TypeError("First argument must be an Object."); }
                 let {name, version, dependencies} = spec;
 
