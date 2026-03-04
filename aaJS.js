@@ -4951,17 +4951,24 @@ const aa = {};
             }
             aa.arg.test(model, model.every(v => aa.isFunction(v)), 0, "must be an Object of Functions only");
 
-            const err = this.reduce((err, v, k)=>{
-                if (!model.hasOwnProperty(k) || !model[k](v)) {
-                    err.push(k);
+            const err = this.reduce((err, value, key)=>{
+                if (!model.hasOwnProperty(key) || !model[key](value)) {
+                    err.keys.push(key);
+                    err.values.push({key, value});
                 }
                 return err;
-            },[]);
-            if (err.length && !options.silent) {
-                warn(`The Object contains invalid key${err.length>1?'s':''} (${err.joinNatural({tag: "'"})})`);
+            },{keys: [], values: []});
+            if (err.keys.length && !options.silent) {
+                console.group("Invalid keys");
+                warn(`The Object contains invalid key${err.keys.length>1?'s':''} (${err.keys.joinNatural({tag: "'"})})`);
+                err.values.forEach(pair => {
+                    log(`${pair.key}:`, pair.value);
+                });
+                log("in object:", this);
+                console.groupEnd("Invalid keys");
             }
             
-            return err.length === 0;
+            return err.keys.length === 0;
         },
         // ----------------------------------------------------------------
         clear () {
