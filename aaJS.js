@@ -4496,6 +4496,16 @@ const aa = {};
 
             return {left, top};
         },
+        getPrototypeChainOf (obj) {
+            let pro;
+            const chain = [];
+            obj = Object.getPrototypeOf(obj);
+            while (obj) {
+                chain.push(obj.constructor);
+                obj = Object.getPrototypeOf(obj);
+            }
+            return chain;
+        },
     });
     aa.deploy(Object.prototype, {
         // ----------------------------------------------------------------
