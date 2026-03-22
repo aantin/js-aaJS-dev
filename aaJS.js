@@ -1491,6 +1491,130 @@ const aa = {};
                 return undefined;
             }
         },
+        stringify  (obj, options={}, depth=0) {
+            const LINE_SEP = `_${aa.uid(16)}_`;
+            const CLI = aa.CLI ?? {
+                color: color => text => text,
+                warning: text => console.warn(text),
+                critical: text => console.error(text),
+                info: text => console.log(text),
+                todo: text => console.log(`Todo: ${text}`),
+            };
+
+            depth ??= 0;
+
+            if (!aa.isPositiveInt(depth)) throw new TypeError("The 'depth' argument must be null or an Integer.");
+            if (!aa.isObject(options)) {CLI.warning(options); throw new TypeError("The 'options' argument must be an Object.");}
+
+            options.collapsed ??= false;
+            options.color ??= true;
+            options.depth ??= 0;
+            options.function ??= false;
+            options.oneLine ??= false;
+            options.showIndexes ??= true;
+
+            [
+                [options.collapsed,     aa.isBool,          "The 'options.collapsed' attribute must be a Boolean."],
+                [options.color,         aa.isBool,          "The 'options.color' attribute must be a Boolean."],
+                [options.depth,         aa.isPositiveInt,   "The 'options.depth' attribute must be null or a positive Integer."],
+                [options.function,      aa.isBool,          "The 'options.function' attribute must be a Boolean."],
+                [options.oneLine,       aa.isBool,          "The 'options.oneLine' attribute must be a Boolean."],
+                [options.showIndexes,   aa.isBool,          "The 'options.showIndexes' attribute must be a Boolean."],
+            ].forEach(([option, verifier, message]) => {
+                if (!verifier(option)) throw new TypeError(message);
+            });
+            
+            const oversized = options.depth > 0 && depth >= options.depth;
+            const collapsed = options.collapsed || oversized;
+
+            const color = {
+                attribute:  "purple",
+                class:      "black",
+                comment:    txt => CLI.color("grey")(CLI.italic(txt)),
+                delimiter:  "grey",
+                function:   "green",
+                keyword:    "blue",
+                number:     "red",
+                operator:   "grey",
+                punctuation: "grey",
+                regex:      "orange",
+                string:     "magenta",
+                warning:    "orange",
+            };
+            Object.keys(color).forEach(type => {
+                const value = color[type];
+                color[type] = typeof value === "function" ? value : options.color ? CLI.color(value) : txt => txt;
+            });
+
+            let txt = '';
+            
+            const pad = "".padStart(2 * depth, " ");
+            switch (typeof obj) {
+            case "string":
+                txt += `${color.delimiter('"')}${color.string(obj)}${color.delimiter('"')}`;
+                break;
+            case "number":
+                txt += color.number(`${obj}`);
+                break;
+            case "boolean":
+                txt += color.keyword(obj ? "true" : "false");
+                break;
+            case "function":
+                txt += `${color.delimiter('<')}${color.keyword("function")}${color.function(obj.name ? ` ${obj.name}` : '')}${color.delimiter('>')}${options.function ? ` ${color.comment(obj.toString())}` : ''}`;
+                break;
+            case "undefined":
+                txt += color.keyword("undefined");
+                break;
+            case "object":
+                if (obj === null) {
+                    txt += color.keyword("null");
+                }
+                // Array:
+                else if (aa.isArray(obj)) {
+                    const content = collapsed ? color.punctuation("...") : `${obj.map(
+                        (item, i) => `  ${pad}${options.showIndexes ? `${color.number(i)}${color.punctuation(':')} ` : ''}${aa.stringify(item, options, depth + 1)}`
+                    ).join(`${color.punctuation(',')}${LINE_SEP}\n`)}`;
+                    txt += content.length ? `${color.delimiter('[')}${collapsed ? content : `\n${content}\n${pad}`}${color.delimiter(']')}` : `${color.delimiter('[]')}`;
+                }
+                // RegExp:
+                else if (obj?.constructor === RegExp) {
+                    txt += `${color.regex(`/${obj.source}/${obj.flags ?? ''}`)}`;
+                }
+                // Instance:
+                else if (obj?.constructor?.name && obj.constructor.name !== "Object") {
+                    const str = typeof obj.stringify === "function" ? obj.stringify(options, depth) : collapsed ? color.punctuation("{...}") : aa.stringify(Object.keys(obj).reduce((acc, key) => {
+                        acc[key] = obj[key];
+                        return acc;
+                    }, {}), options, depth + 1);
+                    txt += `${color.delimiter('<')}${color.class(obj.constructor?.name)}${color.delimiter('>')}${str ? ` ${str}` : ''}`;
+                }
+                // Simple object::
+                else if (aa.isObject(obj)) {
+                    const content = collapsed ? color.punctuation("...") : `${Object.keys(obj).sortNatural().map(
+                        key => `  ${pad}${key.match(/^[0-9]+$/) ? color.number(key) : color.attribute(key)}${color.punctuation(':')} ${aa.stringify(obj[key], options, depth + 1)}`
+                    ).join(`${color.punctuation(',')}${LINE_SEP}\n`)}`;
+                    txt += content.length ? `${color.delimiter('{')}${collapsed ? content : `\n${content}\n${pad}`}${color.delimiter('}')}` : `${color.delimiter('{}')}`;
+                }
+                // Unknown:
+                else {
+                    txt += `${color.delimiter('<')}${color.warning("unknown object")}${color.delimiter('>')}`;
+                }
+                break;
+            }
+            return (options.oneLine?
+                (
+                    txt.split('\n')
+                    .filter(line => line.trim().length > 0)
+                    .map(line => line
+                        .replace(/^\s+/g, '')
+                        .replace(new RegExp(`${LINE_SEP}$`, 'g'), ' ')
+                        .replace(/\s+$/g, ' '))
+                    .join('')
+                )
+                : txt.replace(new RegExp(`${LINE_SEP}\n`, 'g'), '\n')
+                // : txt
+            );
+        },
         testStorage (type) {
             if (!self.window) throw new Error("window not defined.");
             if (type !== "local" && type !== "session") {
@@ -3327,6 +3451,78 @@ const aa = {};
                     };
                     return on;
                 },
+                getCanceller (accessor /*, key, spec */) {
+                    /**
+                     * Usage:
+                     *      MyClass.prototype.on = getListener(get, "listeners");
+                     *      MyClass.prototype.on = getListener({get}, "listeners");
+                     *      MyClass.prototype.on = getListener({cut, get, set}, "listeners");
+                     * 
+                     * @param {function|object} accessor (if accessor is a function, accessor defines the getter; else if accessor is an object)
+                     * @param {string} key (optional)
+                     * @param {object} spec (optional)
+                     * 
+                     * @return {function}
+                     */
+                    aa.arg.test(accessor, arg => (aa.isFunction(arg) || aa.verifyObject({
+                        cut: aa.isFunction,
+                        get: aa.isFunction,
+                        set: aa.isFunction,
+                    })(arg)), `'accessor'`);
+                    const key = aa.arg.optional(arguments, 1, `listeners-${id}`, aa.nonEmptyString);
+                    const spec = aa.arg.optional(arguments, 2, {}, aa.verifyObject(aa.event.specs));
+
+                    if (aa.isObject(accessor)) {
+                        accessor.sprinkle({cut, get, set});
+                    }
+                    const cutter = aa.isFunction(accessor) ? accessor : accessor.cut;
+                    const getter = aa.isFunction(accessor) ? accessor : accessor.get;
+                    const setter = aa.isObject(accessor) ? accessor.set : set;
+
+                    const cancel = function (eventName, callback) {
+                        /**
+                         *  Usage:
+                         *      this.cancel("eventname", (data) => {
+                         *          // do stuff with data...
+                         *      }));
+                         *  or
+                         *      this.cancel({
+                         *          eventname: data => {
+                         *              // do stuff with data...
+                         *          }
+                         *      });
+                         * 
+                         * @param {string} eventName
+                         * @param {function} callback
+                         * 
+                         * @return {object} this, for chaining
+                         */
+
+                        // If an object is given, re-call on each entry:
+                        if (aa.isObject(eventName)) {
+                            aa.arg.test(eventName, aa.isObjectOfFunctions, `'eventName'`);
+                            eventName.forEach((callback, name) => {
+                                cancel.call(this, name, callback);
+                            });
+                            return this;
+                        }
+
+                        // Call once:
+                        let listeners = getter(this, key);
+                        if (listeners === undefined) {
+                            setter(this, key, {});
+                            listeners = getter(this, key);
+                        }
+                        aa.arg.test(listeners, aa.isObject, `'listeners'`);
+                        aa.arg.test(eventName, aa.nonEmptyString, `'eventName'`);
+                        aa.arg.test(callback, aa.isFunction, `'callback'`);
+
+                        eventName = eventName.trim();
+                        listeners[eventName]?.remove(callback);
+                        return this;
+                    };
+                    return cancel;
+                },
                 specs: {
                     verbose: value => typeof value === "boolean"
                 }
@@ -3433,6 +3629,19 @@ const aa = {};
         },
     });
     aa.deploy(Number.prototype, {
+        between (min, max, strict=false) {
+            /**
+             * @param {Number} min
+             * @param {Number} max
+             * @param {Boolean} strict=false (strict)
+             */
+
+            aa.arg.test(strict, aa.isBool, "'strict'");
+            return (strict ?
+                (this > min && this < max)
+                : (this >= min && this <= max)
+            );
+        },
         /**
          * Return th number if it is within the given boundaries; else return the minimum or maximum (both included).
          * 
@@ -3477,19 +3686,6 @@ const aa = {};
             const max = origRange[1];
             const variation = (destRange[1] - destRange[0]) / (max - min);
             return (destRange[0] + ((value - min) * variation));
-        },
-        between (min, max, strict=false) {
-            /**
-             * @param {Number} min
-             * @param {Number} max
-             * @param {Boolean} strict=false (strict)
-             */
-
-            aa.arg.test(strict, aa.isBool, "'strict'");
-            return (strict ?
-                (this > min && this < max)
-                : (this >= min && this <= max)
-            );
         },
         pow (param){
             return Math.pow(this,param);
@@ -4981,14 +5177,6 @@ const aa = {};
             return err.keys.length === 0;
         },
         // ----------------------------------------------------------------
-        clear () {
-            aa.arg.test(this, aa.isNode, ": 'clear' method can not be called on an Object that is not a DOM Element.");
-            
-            while (this.firstChild) {
-                this.removeChild(this.firstChild);
-            }
-            return this;
-        },
         diveByClass (className,func) {
             /**
              */
@@ -5196,6 +5384,14 @@ const aa = {};
     // ----------------------------------------------------------------
     // DOM Elements:
     aa.deploy(HTMLElement.prototype, {
+        clear () {
+            aa.arg.test(this, aa.isNode, ": 'clear' method can not be called on an Object that is not a DOM Element.");
+            
+            while (this.firstChild) {
+                this.removeChild(this.firstChild);
+            }
+            return this;
+        },
     }, {force: true});
 
     // Set a label to some functions:
