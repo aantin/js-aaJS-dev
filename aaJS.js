@@ -5,7 +5,7 @@ const aa = {};
     const versioning = {
         aaJS: {
             version: {
-                version: "3.16.0",
+                version: "3.17.0",
                 dependencies: {}
             }
         }
@@ -586,7 +586,7 @@ const aa = {};
                 node.innerHTML += html;
             });
         },
-        addScriptToDOM:             (function () {
+        addScriptToDOM: (function () {
             const charsets = ['utf-8']; // First item will be used by default
 
             return function (path, options={}) {
@@ -607,20 +607,23 @@ const aa = {};
                 const script = document.createElement("script");
                 script.setAttribute("charset", options.charset);
                 script.src = path;
-                document.head?.appendChild(script);
+                document.head?.append(script);
             };
         })(),
-        addStyleToScript (scriptFilename, styleFilename) {
+        addStyleToDOM (url) {
+            const sheet = document.createElement("link");
+            sheet.rel = "stylesheet";
+            sheet.type = "text/css";
+            sheet.href = url;
+            document.head?.append(sheet);
+        },
+        addStyleToScript (scriptSrc, styleSrc) {
             if (!self.document) throw new Error("document not defined.");
 
-            const path = aa.findPathOf(scriptFilename);
-            if (path) {
-                var css = document.createElement("link");
-                css.rel  = "stylesheet";
-                css.type = "text/css";
-                css.href = path+'/'+styleFilename;
-                document.head.appendChild(css);
-            }
+            const path = aa.findPathOf(scriptSrc);
+            if (!path) throw new Error(`Script '${scriptSrc}' not found`);
+
+            aa.addStyleToDOM(`${path}/${styleSrc}`);
         },
         any:                        () => true,
         asyncLoop (length, callback, thisArg=null) {
@@ -722,23 +725,15 @@ const aa = {};
         findPathOf (filename) {
             if (!self.document) throw new Error("document not defined.");
 
-            const folder = document
-                .getElementsByTagName("script")
-                .reduce(function (folder, script) {
-                    if (script && aa.isObject(script) && script.src) {
-                        const re = new RegExp('^(.+)'+filename+'$','');
-                        const result = script.src.match(re);
-                        if (result && result.length>=2) {
-                            folder = result[1];
-                            if (folder.match(/[^\/](\/)$/)) {
-                                folder = folder.replace(/\/$/, '');
-                            }
-                        }
-                    }
-                    return folder;
-                }, undefined)
-            ;
-            return folder;
+            return (
+                Array.from(document.querySelectorAll("script"))
+                ?.find(script => script.src.match(new RegExp(`${filename.replace(/\/$/, '').replace(/\./g, '\\.')}$`)) !== null)
+                ?.src
+                ?.split('/')
+                .slice(0, -1)
+                .join('/')
+                ?? undefined
+            );
         },
         getCookie (sName) {
             if (!self.document) throw new Error("document not defined.");
@@ -1105,20 +1100,20 @@ const aa = {};
                 },
             );
         },
-        isArrayOfFunctions (a){
-
-            return (aa.isArray(a) && a.reduce((ok, v)=>{ return (!aa.isFunction(v) ? false : ok); }, true));
+        isArrayOfFunctions (list) {
+            return aa.isArray(list) && list.every(aa.isFunction);
         },
         isArrayOfNonEmptyStrings (list) {
             return aa.isArray(list) && list.every(aa.nonEmptyString);
         },
-        isArrayOfNumbers (a){
-
-            return (aa.isArray(a) && a.every(v => aa.isNumber(v)));
+        isArrayOfNumbers (list) {
+            return aa.isArray(list) && list.every(aa.isNumber);
         },
-        isArrayOfStrings (a){
-            
-            return (aa.isArray(a) && a.reduce((ok, v)=>{ return (!aa.isString(v) ? false : ok); }, true));
+        isArrayOfObjects (list) {
+            return aa.isArray(list) && list.every(aa.isObject);
+        },
+        isArrayOfStrings (list) {
+            return aa.isArray(list) && list.every(aa.isString);
         },
         isBool (o){
             return (o === true || o === false);
@@ -1658,6 +1653,11 @@ const aa = {};
             // }
             parametre = parseFloat(parametre);
             return parametre;
+        },
+        toggle (values, value) {
+            aa.arg.test(values, aa.isArrayLike, "'values'");
+            const index = (values.indexOf(value) + 1).clamp(0, values.length, {loop: true});
+            return values[index];
         },
         unsetCookie (sName){
 
@@ -4062,14 +4062,14 @@ const aa = {};
     });
 
     // ARRAY functions:
-    if (Array.prototype.first                   === undefined) { 
+    if (!Array.prototype.hasOwnProperty("first")) { 
         Object.defineProperty(Array.prototype,'first',{
             get () {
                 return this.length > 0 ? this[0] : undefined;
             }
         });
     }
-    if (Array.prototype.last                    === undefined) { 
+    if (!Array.prototype.hasOwnProperty("last")) { 
         Object.defineProperty(Array.prototype, "last", {
             get () {
                 return this.length > 0 ? this[this.length - 1] : undefined;
@@ -6508,3 +6508,4 @@ const aa = {};
     });
     // ----------------------------------------------------------------
 })();
+module.exports = {aa};
