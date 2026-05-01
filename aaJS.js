@@ -5,7 +5,7 @@ const aa = {};
     const versioning = {
         aaJS: {
             version: {
-                version: "3.18.0",
+                version: "3.18.1",
                 dependencies: {}
             }
         }
@@ -4693,17 +4693,24 @@ const aa = {};
             return {left, top};
         },
         getPrototypeChainOf (obj) {
-            let pro;
             const chain = [];
-            obj = Object.getPrototypeOf(obj);
-            while (obj) {
-                chain.push(obj.constructor);
+            if (typeof obj === "function") {
                 obj = Object.getPrototypeOf(obj);
+                while (obj) {
+                    chain.push(obj);
+                    obj = Object.getPrototypeOf(obj);
+                }
+            } else {
+                obj = Object.getPrototypeOf(obj);
+                while (obj) {
+                    chain.push(obj.constructor);
+                    obj = Object.getPrototypeOf(obj);
+                }
             }
             return chain;
         },
     });
-    aa.deploy(Object.prototype, {
+    Object.assign(Object.prototype, {
         // ----------------------------------------------------------------
         // Object functions:
         bind (thisArg) {
@@ -5380,7 +5387,7 @@ const aa = {};
 
             return this.filter((v, k)=>{ return !keys.has(k); });
         },
-    }, {force: true});
+    });
     // ----------------------------------------------------------------
     // DOM Elements:
     aa.deploy(HTMLElement.prototype, {
@@ -6200,7 +6207,6 @@ const aa = {};
             construct.apply(this, arguments);
         };
         const aaVersions = new (function () {
-
             if (true) {
                 // Magic:
                 this.init                   = function () {
