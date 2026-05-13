@@ -5,7 +5,7 @@ const aa = {};
     const versioning = {
         aaJS: {
             version: {
-                version: "3.18.1",
+                version: "3.19.0",
                 dependencies: {}
             }
         }
@@ -1654,7 +1654,7 @@ const aa = {};
             parametre = parseFloat(parametre);
             return parametre;
         },
-        toggle (values, value) {
+        toggle (value, values=[true, false]) {
             aa.arg.test(values, aa.isArrayLike, "'values'");
             const index = (values.indexOf(value) + 1).clamp(0, values.length, {loop: true});
             return values[index];
@@ -3744,6 +3744,100 @@ const aa = {};
             }
             return o;
         },
+        convertFromRomaji: (() => {
+            const dico = {
+                ' ': '　',
+                '.': '．',
+                '[': '［',
+                ']': '］',
+                '\\': '＼',
+                '/': '／',
+                '_': '＿',
+                ':': '：',
+                ';': '；',
+                '<': '＜',
+                '=': '＝',
+                '>': '＞',
+                '?': '？',
+                '@': '＠',
+                '*': '＊',
+                '+': '＋',
+                ',': '，',
+                '-': '－',
+
+                '0': '０',
+                '1': '１',
+                '2': '２',
+                '3': '３',
+                '4': '４',
+                '5': '５',
+                '6': '６',
+                '7': '７',
+                '8': '８',
+                '9': '９',
+
+                A: 'Ａ',
+                B: 'Ｂ',
+                C: 'Ｃ',
+                D: 'Ｄ',
+                E: 'Ｅ',
+                F: 'Ｆ',
+                G: 'Ｇ',
+                H: 'Ｈ',
+                I: 'Ｉ',
+                J: 'Ｊ',
+                K: 'Ｋ',
+                L: 'Ｌ',
+                M: 'Ｍ',
+                N: 'Ｎ',
+                O: 'Ｏ',
+                P: 'Ｐ',
+                Q: 'Ｑ',
+                R: 'Ｒ',
+                S: 'Ｓ',
+                T: 'Ｔ',
+                U: 'Ｕ',
+                V: 'Ｖ',
+                W: 'Ｗ',
+                X: 'Ｘ',
+                Y: 'Ｙ',
+                Z: 'Ｚ',
+
+                a: 'ａ',
+                b: 'ｂ',
+                c: 'ｃ',
+                d: 'ｄ',
+                e: 'ｅ',
+                f: 'ｆ',
+                g: 'ｇ',
+                h: 'ｈ',
+                i: 'ｉ',
+                j: 'ｊ',
+                k: 'ｋ',
+                l: 'ｌ',
+                m: 'ｍ',
+                n: 'ｎ',
+                o: 'ｏ',
+                p: 'ｐ',
+                q: 'ｑ',
+                r: 'ｒ',
+                s: 'ｓ',
+                t: 'ｔ',
+                u: 'ｕ',
+                v: 'ｖ',
+                w: 'ｗ',
+                x: 'ｘ',
+                y: 'ｙ',
+                z: 'ｚ',
+            };
+            return function convertFromRomaji () {
+                let str = `${this}`;
+                dico.forEach((romaji, base)=>{
+                    str = str.replace(new RegExp(`[\\${romaji}]`, 'g'), base);
+                });
+                return str;
+            }
+        })(),
         relativeFromAbsolute (){
             let that = this+'';
             return that;
