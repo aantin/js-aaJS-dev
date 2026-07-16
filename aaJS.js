@@ -5,7 +5,7 @@ const aa = {};
     const versioning = {
         aaJS: {
             version: {
-                version: "3.19.0",
+                version: "3.19.1",
                 dependencies: {}
             }
         }
@@ -1386,7 +1386,7 @@ const aa = {};
             aa.arg.test(textarea, arg => aa.isElement(arg) && arg?.tagName?.toLowerCase?.() === 'textarea', "'textarea'");
 
             textarea.style.height = '0px';
-            textarea.style.height = `${textarea.scrollHeight}px`;
+            textarea.style.height = `${textarea.scrollHeight + 2}px`;
         },
         setCookie (sName, sValue){
             if (!self.document) throw new Error("document not defined.");
