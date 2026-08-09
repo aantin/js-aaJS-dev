@@ -5,7 +5,7 @@ const aa = {};
     const versioning = {
         aaJS: {
             version: {
-                version: "3.19.1",
+                version: "3.20.0",
                 dependencies: {}
             }
         }
