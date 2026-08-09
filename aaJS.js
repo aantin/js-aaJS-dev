@@ -246,7 +246,7 @@ const aa = {};
         warn:                       console.warn,
     });
     // ----------------------------------------------------------------
-    aa.deploy(aa, {
+    Object.assign(aa, {
         geometry: Object.freeze({
             affine: {
                 byTwo (a, b) {
@@ -579,8 +579,8 @@ const aa = {};
                 );
             },
         },
-    }, {force: true});
-    aa.deploy(aa, {
+    });
+    Object.assign(aa, {
         addHTML (identifiant, html) {
             el(identifiant, node => {
                 node.innerHTML += html;
@@ -1843,8 +1843,8 @@ const aa = {};
                 log.apply(null, args);
             };
         },
-    }, {force: true});
-    aa.deploy(aa, {
+    });
+    Object.assign(aa, {
         defineAccessors (accessors /*, spec */) {
             aa.arg.test(accessors, aa.verifyObject({
                 execute:    aa.isObject,
@@ -3197,8 +3197,8 @@ const aa = {};
                 return privateScope;
             }
         })(),
-    }, {force: true});
-    aa.deploy(aa, {
+    });
+    Object.assign(aa, {
         uid:                        (function () {
             let x = 0;
             const indexes = {};
@@ -3256,8 +3256,8 @@ const aa = {};
             });
             return uuid;
         },
-    }, {force: true});
-    aa.deploy(aa, {
+    });
+    Object.assign(aa, {
         class: (() => {
             const {cut, get, set} = aa.mapFactory();
             return {
@@ -3597,7 +3597,7 @@ const aa = {};
 
             setTimeout(callback, delay);
         },
-    }, {force: true});
+    });
 
     // NUMBER functions:
     aa.deploy(Number, {
@@ -4185,7 +4185,7 @@ const aa = {};
             return (table.indexOf(JSON.stringify(param)));
         }
     });
-    aa.deploy(Array.prototype, {
+    Object.assign(Array.prototype, {
         clear () {
             // const that = Object(this);
             // that.splice(0, that.length);
@@ -4287,6 +4287,17 @@ const aa = {};
             if (i > -1) {
                 this.splice(i, 1);
             }
+        },
+        shuffle () {
+            let index = this.length;
+    
+            while (index !== 0) {
+    
+                const other = Math.floor(Math.random() * index);
+                index--;
+                [this[index], this[other]] = [this[other], this[index]];
+            }
+            return this;
         },
         sortFloat () {
             
@@ -4398,7 +4409,7 @@ const aa = {};
             }).length !== 0);
             // return this.every(callback);
         },
-    }, {force: true});
+    });
     aa.deploy(Array.prototype, {
         // from MDN:
         every (callback /*, thisArg */) {
@@ -5484,7 +5495,7 @@ const aa = {};
     });
     // ----------------------------------------------------------------
     // DOM Elements:
-    aa.deploy(HTMLElement.prototype, {
+    Object.assign(HTMLElement.prototype, {
         clear () {
             aa.arg.test(this, aa.isNode, ": 'clear' method can not be called on an Object that is not a DOM Element.");
             
@@ -5493,7 +5504,7 @@ const aa = {};
             }
             return this;
         },
-    }, {force: true});
+    });
 
     // Set a label to some functions:
     (() => {
@@ -5968,7 +5979,7 @@ const aa = {};
                 },
             });
         }
-        aa.deploy(LinkedList.prototype, {
+        Object.assign(LinkedList.prototype, {
             // Loop methods:
             every (callback, thisArg) {
                 const that = Object(this);
@@ -6110,17 +6121,17 @@ const aa = {};
                 }
                 return result;
             },
-        }, {force: true});
+        });
 
         // Statics:
-        aa.deploy(LinkedList, {
+        Object.assign(LinkedList, {
             from (arr) {
                 if (!aa.isArrayLike(arr)) throw new TypeError("The argument must be an Array-like.");
                 const list = new LinkedList();
                 list.add(...arr);
                 return list;
             },
-        }, {force: true});
+        });
 
         function LinkedListNode (value, parent) {
             set(this, "parent", parent);
@@ -6141,7 +6152,7 @@ const aa = {};
                 },
             });
         }
-        aa.deploy(LinkedListNode.prototype, {
+        Object.assign(LinkedListNode.prototype, {
             insert (value) {
                 const node = new LinkedListNode(value);
 
@@ -6176,7 +6187,7 @@ const aa = {};
                 cut(this, "parent");
                 cut(this, "previous");
             },
-        }, {force: true});
+        });
         return LinkedList;
     })();
     aa.versioning = new (function () {
@@ -6608,4 +6619,3 @@ const aa = {};
     });
     // ----------------------------------------------------------------
 })();
-module.exports = {aa};
