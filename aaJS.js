@@ -5,7 +5,7 @@ const aa = {};
     const versioning = {
         aaJS: {
             version: {
-                version: "3.20.0",
+                version: "3.21.0",
                 dependencies: {}
             }
         }
@@ -5076,6 +5076,16 @@ const aa = {};
                 //Étapes 6.a: NaN == NaN
                 return v1 !== v1 && v2 !== v2;
             }
+        },
+        isExtending (ParentConstructor) {
+            let proto = this;
+            let i = 0;
+            while (proto && i < 1000) {
+                if (proto === ParentConstructor) break;
+                proto = Object.getPrototypeOf(proto);
+                i++;
+            }
+            return !!proto;
         },
         keys () {
             
